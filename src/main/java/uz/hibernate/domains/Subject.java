@@ -1,4 +1,4 @@
-package uz.hibernate.domain;
+package uz.hibernate.domains;
 
 import jakarta.persistence.*;
 import lombok.*;

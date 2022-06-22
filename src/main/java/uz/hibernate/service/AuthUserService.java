@@ -5,7 +5,7 @@ import lombok.NonNull;
 import uz.hibernate.config.ApplicationContextHolder;
 import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.auth.AuthUserDAO;
-import uz.hibernate.domain.auth.AuthUser;
+import uz.hibernate.domains.auth.AuthUser;
 import uz.hibernate.utils.BaseUtil;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.auth.AuthUserCreateVO;
@@ -43,7 +43,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         AuthUser authUser = AuthUser
                 .childBuilder()
                 .username(vo.getUsername())
-                .password(vo.getPassword())
+                .password(utils.encode(vo.getPassword()))
                 .email(vo.getEmail())
                 .build();
         return new Response<>(dao.save(authUser).getId());

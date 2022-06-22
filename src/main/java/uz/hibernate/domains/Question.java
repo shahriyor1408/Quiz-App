@@ -1,4 +1,4 @@
-package uz.hibernate.domain;
+package uz.hibernate.domains;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,7 +18,7 @@ public class Question extends Auditable {
     private String text;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "question_id")
+    @JoinColumn(name = "subject_id")
     @OrderColumn(name = "type")
     List<Answer> answerList = new ArrayList<>();
 

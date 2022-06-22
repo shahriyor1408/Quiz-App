@@ -1,9 +1,10 @@
-package uz.hibernate.domain.auth;
+package uz.hibernate.domains.auth;
 
 import jakarta.persistence.*;
 import lombok.*;
-import uz.hibernate.domain.Auditable;
-import uz.hibernate.domain.TestHistory;
+import uz.hibernate.domains.Auditable;
+import uz.hibernate.domains.SessionEntity;
+import uz.hibernate.domains.TestHistory;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.enums.Status;
 
@@ -38,6 +39,10 @@ public class AuthUser extends Auditable {
     @OrderColumn(name = "type")
     private List<TestHistory> testHistoryList = new ArrayList<>();
 
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "auth_user_id")
+    private SessionEntity session;
+
     @Builder(builderMethodName = "childBuilder")
     public AuthUser(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String username, String password, String email, AuthRole role, Status status) {
         super(id, createdAt, createdBy, updatedAt, updatedBy, deleted);
@@ -46,6 +51,5 @@ public class AuthUser extends Auditable {
         this.email = email;
         this.role = role;
         this.status = status;
-
     }
 }

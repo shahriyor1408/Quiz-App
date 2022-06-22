@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import uz.hibernate.dao.GenericDAO;
-import uz.hibernate.domain.auth.AuthUser;
+import uz.hibernate.domains.auth.AuthUser;
 
 import java.util.Objects;
 import java.util.Optional;
