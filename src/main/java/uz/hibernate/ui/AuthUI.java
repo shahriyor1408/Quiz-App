@@ -16,7 +16,6 @@ public class AuthUI {
     static AuthUI authUI = new AuthUI();
 
     public static void main(String[] args) {
-
         if (Objects.isNull(Session.sessionUser)) {
             BaseUtils.println("Login    -> 1");
             BaseUtils.println("Register -> 2");
@@ -33,19 +32,20 @@ public class AuthUI {
                 BaseUtils.println("Delete quiz    -> 10");
                 BaseUtils.println("Answer CRUD    -> 11");
             } else if (Session.sessionUser.getRole().equals(AuthRole.ADMIN)) {
-                BaseUtils.println("Show subjects  -> 3");
-                BaseUtils.println("Solve test     -> 4");
-                BaseUtils.println("Show history   -> 5");
-                BaseUtils.println("Create quiz    -> 7");
-                BaseUtils.println("Show quiz list -> 8");
-                BaseUtils.println("Update quiz    -> 9");
-                BaseUtils.println("Delete quiz    -> 10");
-                BaseUtils.println("Answer CRUD    -> 11");
-                BaseUtils.println("Block user     -> 12");
-                BaseUtils.println("Subject CRUD   -> 13");
-                BaseUtils.println("Show all users -> 14");
+                BaseUtils.println("Show subjects     -> 3");
+                BaseUtils.println("Solve test        -> 4");
+                BaseUtils.println("Show history      -> 5");
+                BaseUtils.println("Create quiz       -> 7");
+                BaseUtils.println("Show quiz list    -> 8");
+                BaseUtils.println("Update quiz       -> 9");
+                BaseUtils.println("Delete quiz       -> 10");
+                BaseUtils.println("Answer CRUD       -> 11");
+                BaseUtils.println("Block user        -> 12");
+                BaseUtils.println("Subject CRUD      -> 13");
+                BaseUtils.println("Show all users    -> 14");
+                BaseUtils.println("Give teacher role -> 15");
             }
-            BaseUtils.println("Logout    -> 9");
+            BaseUtils.println("Logout    -> 0");
         }
 
         BaseUtils.println("Quit -> q");
@@ -65,6 +65,8 @@ public class AuthUI {
             case "12" -> authUI.blockUser();
             case "13" -> authUI.subjectCRUD();
             case "14" -> authUI.showAllUsers();
+            case "15" -> authUI.giveTeacherRole();
+            case "0" -> authUI.logout();
             case "q" -> {
                 BaseUtils.println("Bye", Colors.CYAN);
                 System.exit(0);
@@ -72,6 +74,14 @@ public class AuthUI {
             default -> BaseUtils.println("Wrong Choice", Colors.RED);
         }
         main(args);
+    }
+
+    private void logout() {
+
+    }
+
+    private void giveTeacherRole() {
+
     }
 
     private void answerCRUD() {

@@ -2,7 +2,6 @@ package uz.hibernate.domains;
 
 import jakarta.persistence.*;
 import lombok.*;
-import uz.hibernate.dao.BaseDAO;
 import uz.hibernate.domains.auth.AuthUser;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.enums.Status;
@@ -16,7 +15,7 @@ import java.sql.Timestamp;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessionEntity implements BaseDAO {
+public class SessionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

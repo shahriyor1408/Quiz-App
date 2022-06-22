@@ -32,7 +32,9 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
         return Optional.ofNullable(query.getSingleResultOrNull());
     }
 
-    public void saveSession(SessionEntity.SessionEntityBuilder sessionEntity) {
-
+    public void saveSession(SessionEntity sessionEntity) {
+        Session currentSession = getSession();
+        currentSession.persist(sessionEntity);
+        currentSession.getTransaction().commit();
     }
 }

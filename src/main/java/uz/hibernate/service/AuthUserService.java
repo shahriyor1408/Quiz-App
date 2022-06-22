@@ -7,6 +7,8 @@ import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.auth.AuthUserDAO;
 import uz.hibernate.domains.SessionEntity;
 import uz.hibernate.domains.auth.AuthUser;
+import uz.hibernate.enums.AuthRole;
+import uz.hibernate.enums.Status;
 import uz.hibernate.utils.BaseUtil;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.auth.AuthUserCreateVO;
@@ -43,11 +45,14 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         if (optionalAuthUser.isPresent()) {
             throw new RuntimeException("Username already exist!");
         }
+
         AuthUser authUser = AuthUser
                 .childBuilder()
                 .username(vo.getUsername())
                 .password(utils.encode(vo.getPassword()))
                 .email(vo.getEmail())
+                .role(AuthRole.USER)
+                .status(Status.ACTIVE)
                 .build();
         return new Response<>(dao.save(authUser).getId());
     }
@@ -94,18 +99,18 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         AuthUserVO authUserVO = AuthUserVO.childBuilder()
                 .username(authUser.getUsername())
                 .email(authUser.getEmail())
+                .role(authUser.getRole())
                 .createdAt(authUser.getCreatedAt())
                 .build();
 
-        SessionEntity.SessionEntityBuilder sessionEntity = SessionEntity.builder()
-                .authUser(authUser)
+        SessionEntity status = SessionEntity.builder()
                 .username(authUser.getUsername())
                 .firstLoggedIn(Timestamp.valueOf(LocalDateTime.now()))
                 .role(authUser.getRole())
-                .status(authUser.getStatus());
+                .status(authUser.getStatus())
+                .build();
 
-//        dao.save(sessionEntity);
-
+        dao.saveSession(status);
         Session.setSessionUser(authUserVO);
         return new Response<>(authUserVO);
     }
