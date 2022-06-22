@@ -3,6 +3,7 @@ package uz.hibernate.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uz.hibernate.domains.auth.AuthUser;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.vo.auth.AuthUserVO;
 

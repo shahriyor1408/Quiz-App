@@ -1,6 +1,7 @@
 package uz.hibernate.domains;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import lombok.*;
 
@@ -17,8 +18,9 @@ public class Answer extends Auditable {
     @Column(nullable = false, unique = true)
     private String text;
 
-    @Column(nullable = false, columnDefinition = "default false")
-    private Boolean is_correct;
+    @Column(columnDefinition = "smallint default 0")
+    @Convert(converter = org.hibernate.type.NumericBooleanConverter.class)
+    private boolean is_correct;
 
     @Builder(builderMethodName = "childBuilder")
     public Answer(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String text, Boolean is_correct) {

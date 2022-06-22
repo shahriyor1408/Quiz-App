@@ -5,6 +5,7 @@ import lombok.NonNull;
 import uz.hibernate.config.ApplicationContextHolder;
 import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.auth.AuthUserDAO;
+import uz.hibernate.domains.SessionEntity;
 import uz.hibernate.domains.auth.AuthUser;
 import uz.hibernate.utils.BaseUtil;
 import uz.hibernate.vo.Session;
@@ -13,6 +14,8 @@ import uz.hibernate.vo.auth.AuthUserUpdateVO;
 import uz.hibernate.vo.auth.AuthUserVO;
 import uz.hibernate.vo.http.Response;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +31,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
     private AuthUserService() {
         super(
                 ApplicationContextHolder.getBean(AuthUserDAO.class),
-        ApplicationContextHolder.getBean(BaseUtil.class)
+                ApplicationContextHolder.getBean(BaseUtil.class)
         );
     }
 
@@ -93,6 +96,16 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
                 .email(authUser.getEmail())
                 .createdAt(authUser.getCreatedAt())
                 .build();
+
+        SessionEntity.SessionEntityBuilder sessionEntity = SessionEntity.builder()
+                .authUser(authUser)
+                .username(authUser.getUsername())
+                .firstLoggedIn(Timestamp.valueOf(LocalDateTime.now()))
+                .role(authUser.getRole())
+                .status(authUser.getStatus());
+
+//        dao.save(sessionEntity);
+
         Session.setSessionUser(authUserVO);
         return new Response<>(authUserVO);
     }

@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import uz.hibernate.dao.GenericDAO;
+import uz.hibernate.domains.SessionEntity;
 import uz.hibernate.domains.auth.AuthUser;
 
 import java.util.Objects;
@@ -29,5 +30,9 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
                         AuthUser.class);
         query.setParameter("username", username);
         return Optional.ofNullable(query.getSingleResultOrNull());
+    }
+
+    public void saveSession(SessionEntity.SessionEntityBuilder sessionEntity) {
+
     }
 }
