@@ -9,11 +9,13 @@ import uz.hibernate.domains.SessionEntity;
 import uz.hibernate.domains.auth.AuthUser;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.enums.Status;
+import uz.hibernate.exceptions.CustomSQLException;
 import uz.hibernate.utils.BaseUtil;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.auth.AuthUserCreateVO;
 import uz.hibernate.vo.auth.AuthUserUpdateVO;
 import uz.hibernate.vo.auth.AuthUserVO;
+import uz.hibernate.vo.auth.ResetPasswordVO;
 import uz.hibernate.vo.http.Response;
 
 import java.sql.Timestamp;
@@ -111,7 +113,36 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
                 .build();
 
         dao.saveSession(status);
+        authUserVO.setId(status.getId());
         Session.setSessionUser(authUserVO);
         return new Response<>(authUserVO);
+    }
+
+    public void deleteSession(Long id) {
+        Optional<SessionEntity> optionalSession = dao.findByIdSession(id);
+        if (optionalSession.isEmpty()) {
+            throw new RuntimeException("Session does not exist!");
+        }
+        try {
+            dao.deleteByIdSession(id);
+        } catch (CustomSQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void resetPassword(ResetPasswordVO resetPasswordVO) {
+        Optional<SessionEntity> optionalSession = dao.findByIdSession(Session.sessionUser.getId());
+        if (optionalSession.isEmpty()) {
+            throw new RuntimeException("Session does not exist!");
+        }
+
+        if(!resetPasswordVO.getNewPassword().equals(resetPasswordVO.getConfirmPassword())){
+            throw new RuntimeException("Confirm password in not valid");
+        }
+
+        resetPasswordVO.setNewPassword(utils.encode(resetPasswordVO.getNewPassword()));
+        resetPasswordVO.setOldPassword(utils.encode(resetPasswordVO.getOldPassword()));
+        resetPasswordVO.setConfirmPassword(utils.encode(resetPasswordVO.getConfirmPassword()));
+        dao.resetPassword(resetPasswordVO,optionalSession.get().getAuthUser().getId());
     }
 }

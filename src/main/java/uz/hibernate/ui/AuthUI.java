@@ -1,18 +1,24 @@
 package uz.hibernate.ui;
 
 import uz.hibernate.config.ApplicationContextHolder;
+import uz.hibernate.dao.auth.AuthUserDAO;
+import uz.hibernate.domains.Subject;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.service.AuthUserService;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.auth.AuthUserCreateVO;
+import uz.hibernate.vo.auth.ResetPasswordVO;
 import uz.hibernate.vo.http.Response;
 import uz.jl.BaseUtils;
 import uz.jl.Colors;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class AuthUI {
     static AuthUserService serviceUser = ApplicationContextHolder.getBean(AuthUserService.class);
+    static AuthUserDAO authUserDAO = ApplicationContextHolder.getBean(AuthUserDAO.class);
     static AuthUI authUI = new AuthUI();
 
     public static void main(String[] args) {
@@ -77,7 +83,8 @@ public class AuthUI {
     }
 
     private void logout() {
-
+        serviceUser.deleteSession(Session.sessionUser.getId());
+        Session.sessionUser = null;
     }
 
     private void giveTeacherRole() {
@@ -152,7 +159,11 @@ public class AuthUI {
     }
 
     private void resetPassword() {
-
+        ResetPasswordVO resetPasswordVO = ResetPasswordVO.builder()
+                .newPassword(BaseUtils.readText("Old password: "))
+                .newPassword(BaseUtils.readText("New password: "))
+                .confirmPassword("New password again: ").build();
+        serviceUser.resetPassword(resetPasswordVO);
     }
 
     private void updateUser() {
@@ -177,7 +188,7 @@ public class AuthUI {
             case "2" -> authUI.subjectShowList();
             case "3" -> authUI.subjectUpdate();
             case "4" -> authUI.subjectDelete();
-            case "5" -> {
+            case "0" -> {
                 return;
             }
             case "q" -> {
@@ -226,7 +237,13 @@ public class AuthUI {
     }
 
     private void subjectShowList() {
-
+        Optional subjects = authUserDAO.subjectShowList();
+        List<Subject> subjectList = (List<Subject>) subjects.get();
+        if(subjectList.isEmpty()){
+            BaseUtils.println("Subject not found",Colors.GREEN);
+        }else {
+            subjectList.forEach(subject -> System.out.println(BaseUtils.gson.toJson(subject)));
+        }
     }
 
     private void register() {

@@ -19,9 +19,16 @@ public class SessionEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false,unique = true)
     private String username;
+
+    @Enumerated(EnumType.STRING)
     private AuthRole role;
+
+    @Convert(converter = Status.StatusConvertor.class)
     private Status status;
+
     private Timestamp firstLoggedIn;
 
     @OneToOne(cascade = CascadeType.ALL)
