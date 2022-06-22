@@ -136,13 +136,17 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
             throw new RuntimeException("Session does not exist!");
         }
 
+
+
         if(!resetPasswordVO.getNewPassword().equals(resetPasswordVO.getConfirmPassword())){
             throw new RuntimeException("Confirm password in not valid");
         }
 
+//        if(!utils.matchPassword(resetPasswordVO.getOldPassword(), authUser.getPassword())){
+//            throw new RuntimeException("Password is not correct!");
+//        }
+
         resetPasswordVO.setNewPassword(utils.encode(resetPasswordVO.getNewPassword()));
-        resetPasswordVO.setOldPassword(utils.encode(resetPasswordVO.getOldPassword()));
-        resetPasswordVO.setConfirmPassword(utils.encode(resetPasswordVO.getConfirmPassword()));
         dao.resetPassword(resetPasswordVO,optionalSession.get().getAuthUser().getId());
     }
 }

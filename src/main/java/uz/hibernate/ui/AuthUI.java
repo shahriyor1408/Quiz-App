@@ -4,11 +4,16 @@ import uz.hibernate.config.ApplicationContextHolder;
 import uz.hibernate.dao.auth.AuthUserDAO;
 import uz.hibernate.domains.Subject;
 import uz.hibernate.enums.AuthRole;
+import uz.hibernate.enums.QuestionType;
+import uz.hibernate.service.AnswerService;
 import uz.hibernate.service.AuthUserService;
+import uz.hibernate.service.QuestionService;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.auth.AuthUserCreateVO;
 import uz.hibernate.vo.auth.ResetPasswordVO;
 import uz.hibernate.vo.http.Response;
+import uz.hibernate.vo.quiz.AnswerCreateVO;
+import uz.hibernate.vo.quiz.QuestionCreateVO;
 import uz.jl.BaseUtils;
 import uz.jl.Colors;
 
@@ -18,6 +23,8 @@ import java.util.Optional;
 
 public class AuthUI {
     static AuthUserService serviceUser = ApplicationContextHolder.getBean(AuthUserService.class);
+    static QuestionService questionService = ApplicationContextHolder.getBean(QuestionService.class);
+    static AnswerService answerService = ApplicationContextHolder.getBean(AnswerService.class);
     static AuthUserDAO authUserDAO = ApplicationContextHolder.getBean(AuthUserDAO.class);
     static AuthUI authUI = new AuthUI();
 
@@ -88,7 +95,9 @@ public class AuthUI {
     }
 
     private void giveTeacherRole() {
-
+        /***
+         * ME
+         */
     }
 
     private void answerCRUD() {
@@ -134,7 +143,9 @@ public class AuthUI {
     }
 
     private void showAllUsers() {
-
+        /***
+         * ME
+         */
     }
 
     private void settings() {
@@ -162,15 +173,20 @@ public class AuthUI {
         ResetPasswordVO resetPasswordVO = ResetPasswordVO.builder()
                 .newPassword(BaseUtils.readText("Old password: "))
                 .newPassword(BaseUtils.readText("New password: "))
-                .confirmPassword("New password again: ").build();
+                .confirmPassword(BaseUtils.readText("New password again: ")).build();
         serviceUser.resetPassword(resetPasswordVO);
     }
 
     private void updateUser() {
-
+        /***
+         * ME
+         */
     }
 
     private void blockUser() {
+        /***
+         * ME
+         */
 
     }
 
@@ -223,9 +239,49 @@ public class AuthUI {
     private void quizListShow() {
 
     }
-
     private void quizCreate() {
+        String testDescription = BaseUtils.readText("Enter description : ");
+        BaseUtils.println("EASY  -> 1");
+        BaseUtils.println("MEDIUM -> 2");
+        BaseUtils.println("HARD   -> 3");
 
+        String type = BaseUtils.readText("?:");
+
+        switch (type) {
+            case "1" -> type = "EASY";
+            case "2" -> type = "MEDIUM";
+            case "3" -> type = "HARD";
+        }
+
+        String variantA = BaseUtils.readText("Enter variant A : ");
+        String variantB = BaseUtils.readText("Enter variant B : ");
+        String variantC = BaseUtils.readText("Enter variant C : ");
+
+        String correctAnswer = BaseUtils.readText("Enter correct answer for example \"A\" : ");
+
+        switch (correctAnswer) {
+
+            case "A" -> correctAnswer = variantA;
+            case "B" -> correctAnswer = variantB;
+            case "C" -> correctAnswer = variantC;
+            default -> {
+                correctAnswer = variantA;
+            }
+
+        }
+        QuestionCreateVO vo = QuestionCreateVO.builder()
+                .text(testDescription)
+                .type(QuestionType.valueOf(type))
+                .build();
+
+        AnswerCreateVO vo1 = AnswerCreateVO.builder()
+                .variantA(variantA)
+                .variantB(variantB)
+                .variantC(variantC)
+                .correctAnswer(correctAnswer)
+                .build();
+        print_response(questionService.create(vo));
+        print_response(answerService.create(vo1));
     }
 
     private void showHistory() {
@@ -239,9 +295,9 @@ public class AuthUI {
     private void subjectShowList() {
         Optional subjects = authUserDAO.subjectShowList();
         List<Subject> subjectList = (List<Subject>) subjects.get();
-        if(subjectList.isEmpty()){
-            BaseUtils.println("Subject not found",Colors.GREEN);
-        }else {
+        if (subjectList.isEmpty()) {
+            BaseUtils.println("Subject not found", Colors.GREEN);
+        } else {
             subjectList.forEach(subject -> System.out.println(BaseUtils.gson.toJson(subject)));
         }
     }
