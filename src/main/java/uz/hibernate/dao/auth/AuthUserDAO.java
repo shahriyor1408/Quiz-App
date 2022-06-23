@@ -34,28 +34,33 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
                 .createQuery("select t from AuthUser t where lower(t.username) = lower(:username) ",
                         AuthUser.class);
         query.setParameter("username", username);
-        return Optional.ofNullable(query.getSingleResultOrNull());
+        Optional<AuthUser> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
+        session.getTransaction().commit();
+        return resultOrNull;
     }
 
     public void saveSession(SessionEntity sessionEntity) {
         Session currentSession = getSession();
+        currentSession.beginTransaction();
         currentSession.persist(sessionEntity);
         currentSession.getTransaction().commit();
     }
 
     public Optional<SessionEntity> findByIdSession(Long id) {
-        Session session = getSession();
+        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
         session.beginTransaction();
         Query<SessionEntity> query = session
                 .createQuery("select t from SessionEntity t where (t.id) = (:id) ",
                         SessionEntity.class);
         query.setParameter("id", id);
-        return Optional.ofNullable(query.getSingleResultOrNull());
+        Optional<SessionEntity> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
+        session.getTransaction().commit();
+        return resultOrNull;
     }
 
     public void deleteByIdSession(Long id) throws CustomSQLException {
         Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-
+        session.beginTransaction();
         try {
             CallableStatement callableStatement = session.doReturningWork(connection -> {
                 CallableStatement function = connection.prepareCall(
@@ -92,7 +97,23 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
         }
     }
 
-    public Optional subjectShowList() {
-        return null;
+    public void giveTeacherRole(String username, String subjectName) {
+        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
+        session.beginTransaction();
+        try {
+            CallableStatement callableStatement = session.doReturningWork(connection -> {
+                CallableStatement function = connection.prepareCall(
+                        "{ ? = call give_teacher_role(?,?)}"
+                );
+                function.registerOutParameter(1, Types.BIGINT);
+                function.setString(2, username);
+                function.setString(3, subjectName);
+                function.execute();
+                return function;
+            });
+        } finally {
+            session.getTransaction().commit();
+            session.close();
+        }
     }
 }

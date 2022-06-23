@@ -2,6 +2,7 @@ package uz.hibernate.service;
 
 import lombok.NonNull;
 import uz.hibernate.vo.BaseVO;
+import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.GenericVO;
 import uz.hibernate.vo.http.Response;
 
@@ -19,13 +20,13 @@ public interface GenericCRUDService<
         CVO extends BaseVO,
         UVO extends GenericVO,
         ID extends Serializable> {
-    Response<ID> create(@NonNull CVO vo);
+    Response<DataVO<ID>> create(@NonNull CVO vo);
 
-    Response<Void> update(@NonNull UVO vo);
+    Response<DataVO<Void>> update(@NonNull UVO vo);
 
-    Response<Void> delete(@NonNull ID id);
+    Response<DataVO<Void>> delete(@NonNull ID id);
 
-    Response<VO> get(@NonNull ID id);
+    Response<DataVO<VO>> get(@NonNull ID id);
 
-    Response<List<VO>> getAll();
+    Response<DataVO<List<VO>>> getAll();
 }

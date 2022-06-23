@@ -11,10 +11,11 @@ import uz.hibernate.exceptions.CustomSQLException;
 
 import java.sql.CallableStatement;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SubjectDAO extends GenericDAO<Subject, Long> {
 
     private static SubjectDAO instance;
@@ -27,16 +28,18 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
     }
 
     public Optional<Subject> findByName(String in_name) {
-        Session session = getSession();
+        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
         session.beginTransaction();
         Query<Subject> query = session
                 .createQuery("select t from Subject t where lower(t.name) = lower(:in_name) ",
                         Subject.class);
         query.setParameter("in_name", in_name);
-        return Optional.ofNullable(query.getSingleResultOrNull());
+        Optional<Subject> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
+        session.getTransaction().commit();
+        return resultOrNull;
     }
 
-    public Optional<String> update(String current_name, String new_name, Long updater) throws CustomSQLException {
+    public Optional<String> update(String current_name, String new_name, Long updater) throws SQLException {
         String result;
         Session session = HibernateUtils.getSessionFactory().getCurrentSession();
         session.beginTransaction();
@@ -52,15 +55,20 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
                 function.execute();
                 return function;
             });
-            try {
-                result = callableStatement.getString(1);
-            } catch (SQLException e) {
-                throw new CustomSQLException(e.getCause().getLocalizedMessage());
-            }
+            result = callableStatement.getString(1);
             return Optional.of(result);
         } finally {
             session.getTransaction().commit();
             session.close();
         }
+    }
+
+    public Optional subjectShowList() {
+        Session currentSession = HibernateUtils.getSessionFactory().getCurrentSession();
+        currentSession.beginTransaction();
+        List<Subject> subjects = currentSession.createQuery("FROM Subject", Subject.class).getResultList();
+        Optional<List<Subject>> subjectList = Optional.of(subjects);
+        currentSession.getTransaction().commit();
+        return subjectList;
     }
 }

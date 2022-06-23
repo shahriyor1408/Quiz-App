@@ -6,6 +6,7 @@ import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.quiz.QuestionDAO;
 import uz.hibernate.domains.Question;
 import uz.hibernate.utils.BaseUtil;
+import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.http.Response;
 import uz.hibernate.vo.quiz.QuestionCreateVO;
 import uz.hibernate.vo.quiz.QuestionUpdateVO;
@@ -38,7 +39,7 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
     }
 
     @Override
-    public Response<Long> create(@NonNull QuestionCreateVO vo) {
+    public Response<DataVO<Long>> create(@NonNull QuestionCreateVO vo) {
         Optional<Question> questionOptional = dao.findByText(vo.getText());
         if (questionOptional.isPresent()) {
             throw new RuntimeException("Question already exist!");
@@ -47,26 +48,26 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
                 .text(vo.getText())
                 .type(vo.getType())
                 .build();
-        return new Response<>(dao.save(question).getId());
+        return new Response<>(new DataVO<>(dao.save(question).getId()));
     }
 
     @Override
-    public Response<Void> update(@NonNull QuestionUpdateVO vo) {
+    public Response<DataVO<Void>> update(@NonNull QuestionUpdateVO vo) {
         return null;
     }
 
     @Override
-    public Response<Void> delete(@NonNull Long aLong) {
+    public Response<DataVO<Void>> delete(@NonNull Long aLong) {
         return null;
     }
 
     @Override
-    public Response<QuestionVO> get(@NonNull Long aLong) {
+    public Response<DataVO<QuestionVO>> get(@NonNull Long aLong) {
         return null;
     }
 
     @Override
-    public Response<List<QuestionVO>> getAll() {
+    public Response<DataVO<List<QuestionVO>>> getAll() {
         return null;
     }
 }

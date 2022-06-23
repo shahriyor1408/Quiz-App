@@ -6,6 +6,7 @@ import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.quiz.AnswerDAO;
 import uz.hibernate.domains.Answer;
 import uz.hibernate.utils.BaseUtil;
+import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.http.Response;
 import uz.hibernate.vo.quiz.AnswerCreateVO;
 import uz.hibernate.vo.quiz.AnswerUpdateVO;
@@ -37,8 +38,7 @@ public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUD
     }
 
     @Override
-    public Response<Long> create(@NonNull AnswerCreateVO vo) {
-
+    public Response<DataVO<Long>> create(@NonNull AnswerCreateVO vo) {
         Answer answer = Answer.childBuilder()
                 .variantA(vo.getVariantA())
                 .variantB(vo.getVariantB())
@@ -46,26 +46,26 @@ public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUD
                 .correctAnswer(vo.getCorrectAnswer())
                 .build();
 
-        return new Response<>(dao.saveAnswer(answer).getId());
+        return new Response<>(new DataVO<>(dao.saveAnswer(answer).getId()));
     }
 
     @Override
-    public Response<Void> update(@NonNull AnswerUpdateVO vo) {
+    public Response<DataVO<Void>> update(@NonNull AnswerUpdateVO vo) {
         return null;
     }
 
     @Override
-    public Response<Void> delete(@NonNull Long aLong) {
+    public Response<DataVO<Void>> delete(@NonNull Long aLong) {
         return null;
     }
 
     @Override
-    public Response<AnswerVO> get(@NonNull Long aLong) {
+    public Response<DataVO<AnswerVO>> get(@NonNull Long aLong) {
         return null;
     }
 
     @Override
-    public Response<List<AnswerVO>> getAll() {
+    public Response<DataVO<List<AnswerVO>>> getAll() {
         return null;
     }
 }

@@ -21,12 +21,12 @@ public class Question extends Auditable {
     @Enumerated(EnumType.STRING)
     private QuestionType type;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "question_id")
     @OrderColumn(name = "type")
     List<Answer> answerList = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "subject_id")
     private Subject subject;
 

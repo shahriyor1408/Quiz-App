@@ -26,6 +26,8 @@ public class QuestionDAO extends GenericDAO<Question, Long> {
                 .createQuery("select t from Question t where lower(t.text) = lower(:in_text) ",
                         Question.class);
         query.setParameter("in_text", in_text);
-        return Optional.ofNullable(query.getSingleResultOrNull());
+        Optional<Question> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
+        session.getTransaction().commit();
+        return resultOrNull;
     }
 }

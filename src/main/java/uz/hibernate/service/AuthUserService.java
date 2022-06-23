@@ -5,12 +5,16 @@ import lombok.NonNull;
 import uz.hibernate.config.ApplicationContextHolder;
 import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.auth.AuthUserDAO;
+import uz.hibernate.dao.subject.SubjectDAO;
 import uz.hibernate.domains.SessionEntity;
+import uz.hibernate.domains.Subject;
 import uz.hibernate.domains.auth.AuthUser;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.enums.Status;
 import uz.hibernate.exceptions.CustomSQLException;
 import uz.hibernate.utils.BaseUtil;
+import uz.hibernate.vo.AppErrorVO;
+import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.auth.AuthUserCreateVO;
 import uz.hibernate.vo.auth.AuthUserUpdateVO;
@@ -40,13 +44,17 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         );
     }
 
+    static SubjectDAO subjectDAO = SubjectDAO.getInstance();
+
     @Override
     @Transactional
-    public Response<Long> create(@NonNull AuthUserCreateVO vo) {
+    public Response<DataVO<Long>> create(@NonNull AuthUserCreateVO vo) {
         // TODO: 6/21/2022 validate input
         Optional<AuthUser> optionalAuthUser = dao.findByUserName(vo.getUsername());
         if (optionalAuthUser.isPresent()) {
-            throw new RuntimeException("Username already exist!");
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Username already exist!")
+                    .build()), false);
         }
 
         AuthUser authUser = AuthUser
@@ -57,26 +65,26 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
                 .role(AuthRole.USER)
                 .status(Status.ACTIVE)
                 .build();
-        return new Response<>(dao.save(authUser).getId());
+        return new Response<>(new DataVO<>(dao.save(authUser).getId()));
     }
 
     @Override
-    public Response<Void> update(@NonNull AuthUserUpdateVO vo) {
+    public Response<DataVO<Void>> update(@NonNull AuthUserUpdateVO vo) {
         return null;
     }
 
     @Override
-    public Response<Void> delete(@NonNull Long id) {
+    public Response<DataVO<Void>> delete(@NonNull Long id) {
         return null;
     }
 
     @Override
-    public Response<AuthUserVO> get(@NonNull Long id) {
+    public Response<DataVO<AuthUserVO>> get(@NonNull Long aLong) {
         return null;
     }
 
     @Override
-    public Response<List<AuthUserVO>> getAll() {
+    public Response<DataVO<List<AuthUserVO>>> getAll() {
         return null;
     }
 
@@ -87,16 +95,20 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         return instance;
     }
 
-    public Response<AuthUserVO> login(String username, String password) {
+    public Response<DataVO<AuthUserVO>> login(String username, String password) {
         Optional<AuthUser> response = dao.findByUserName(username);
 
         if (response.isEmpty()) {
-            throw new RuntimeException("Username does not exist!");
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("User not found!")
+                    .build()), false);
         }
 
         AuthUser authUser = response.get();
         if (!utils.matchPassword(password, authUser.getPassword())) {
-            throw new RuntimeException("Bad credentials");
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Bad credentials!")
+                    .build()), false);
         }
 
         AuthUserVO authUserVO = AuthUserVO.childBuilder()
@@ -116,30 +128,41 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         dao.saveSession(status);
         authUserVO.setId(status.getId());
         Session.setSessionUser(authUserVO);
-        return new Response<>(authUserVO);
+        return new Response<>(new DataVO<>(authUserVO));
     }
 
-    public void deleteSession(Long id) {
+    public Response<DataVO<Void>> deleteSession(Long id) {
         Optional<SessionEntity> optionalSession = dao.findByIdSession(id);
         if (optionalSession.isEmpty()) {
-            throw new RuntimeException("Session does not exist!");
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Session user not found!")
+                    .build()), false);
         }
         try {
             dao.deleteByIdSession(id);
         } catch (CustomSQLException e) {
-            throw new RuntimeException(e);
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getCause().getLocalizedMessage())
+                    .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                    .build()));
         }
+        return new Response<>(new DataVO<>(null, true));
     }
 
-    public void resetPassword(ResetPasswordVO resetPasswordVO) {
+    public Response<DataVO<Void>> resetPassword(ResetPasswordVO resetPasswordVO) {
         Optional<SessionEntity> optionalSession = dao.findByIdSession(Session.sessionUser.getId());
         if (optionalSession.isEmpty()) {
-            throw new RuntimeException("Session does not exist!");
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Session user not found!")
+                    .build()), false);
         }
 
 
         if (!resetPasswordVO.getNewPassword().equals(resetPasswordVO.getConfirmPassword())) {
-            throw new RuntimeException("Confirm password in not valid");
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Confirm password is not valid!")
+                    .build()), false);
         }
 
 //        if(!utils.matchPassword(resetPasswordVO.getOldPassword(), authUser.getPassword())){
@@ -148,12 +171,24 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
 
         resetPasswordVO.setNewPassword(utils.encode(resetPasswordVO.getNewPassword()));
         dao.resetPassword(resetPasswordVO, optionalSession.get().getAuthUser().getId());
+        return new Response<>(new DataVO<>(null, true));
     }
 
-    public void giveTeacherPermission(String id, String s_id) {
-        AuthUser authUser = dao.findById(Long.valueOf(id));
-        if (Objects.isNull(authUser)) {
-            throw new RuntimeException("User not found!");
+    public Response<DataVO<Void>> giveTeacherPermission(String username, String subjectName) {
+        Optional<AuthUser> userOptional = dao.findByUserName(username);
+
+        if(userOptional.isEmpty()){
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Session user not found!")
+                    .build()), false);
         }
+        Optional<Subject> subjectOptional = subjectDAO.findByName(subjectName);
+        if (subjectOptional.isEmpty()) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Subject not found!")
+                    .build()), false);
+        }
+        dao.giveTeacherRole(username,subjectName);
+        return new Response<>(new DataVO<>(null, true));
     }
 }

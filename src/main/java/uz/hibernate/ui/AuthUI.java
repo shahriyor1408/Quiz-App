@@ -5,11 +5,11 @@ import uz.hibernate.dao.auth.AuthUserDAO;
 import uz.hibernate.domains.Subject;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.enums.QuestionType;
-import uz.hibernate.exceptions.CustomSQLException;
 import uz.hibernate.service.AnswerService;
 import uz.hibernate.service.AuthUserService;
 import uz.hibernate.service.QuestionService;
 import uz.hibernate.service.SubjectService;
+import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.auth.AuthUserCreateVO;
 import uz.hibernate.vo.auth.ResetPasswordVO;
@@ -29,7 +29,6 @@ public class AuthUI {
     static AuthUserService serviceUser = ApplicationContextHolder.getBean(AuthUserService.class);
     static QuestionService questionService = ApplicationContextHolder.getBean(QuestionService.class);
     static AnswerService answerService = ApplicationContextHolder.getBean(AnswerService.class);
-    static AuthUserDAO authUserDAO = ApplicationContextHolder.getBean(AuthUserDAO.class);
     static SubjectService serviceSubject = ApplicationContextHolder.getBean(SubjectService.class);
     static AuthUI authUI = new AuthUI();
 
@@ -90,7 +89,8 @@ public class AuthUI {
     }
 
     private void logout() {
-        serviceUser.deleteSession(Session.sessionUser.getId());
+        Response<DataVO<Void>> response = serviceUser.deleteSession(Session.sessionUser.getId());
+        print_response(response);
         Session.sessionUser = null;
     }
 
@@ -98,9 +98,9 @@ public class AuthUI {
         /***
          * ME
          */
-        String id = BaseUtils.readText("Enter userId : ");
-        String s_id = BaseUtils.readText("Enter subjectId : ");
-        serviceUser.giveTeacherPermission(id, s_id);
+        String username = BaseUtils.readText("Enter username : ");
+        String subjectName = BaseUtils.readText("Enter subjectName : ");
+        print_response(serviceUser.giveTeacherPermission(username, subjectName));
     }
 
     private void answerCRUD() {
@@ -109,7 +109,6 @@ public class AuthUI {
         BaseUtils.println("Update answer    -> 3");
         BaseUtils.println("Delete answer    -> 4");
         BaseUtils.println("Back             -> 0");
-        BaseUtils.println("Quit             -> q");
 
         String choice = BaseUtils.readText("?:");
         switch (choice) {
@@ -119,48 +118,47 @@ public class AuthUI {
             case "4" -> {
                 return;
             }
-            case "q" -> {
-                BaseUtils.println("Bye", Colors.CYAN);
-                System.exit(0);
-            }
             default -> BaseUtils.println("Wrong Choice", Colors.RED);
         }
         answerCRUD();
     }
 
     private void answerDelete() {
-
+        /***
+         * Javohir
+         */
     }
 
     private void answerUpdate() {
-
+        /***
+         * Javohir
+         */
     }
 
     private void answerShowList() {
-
+        /***
+         * Javohir
+         */
     }
 
     private void showAllUsers() {
         /***
          * ME
          */
+
+
     }
 
     private void settings() {
         BaseUtils.println("Update user    -> 1");
         BaseUtils.println("Reset password -> 2");
         BaseUtils.println("Back           -> 0");
-        BaseUtils.println("Quit           -> q");
         String choice = BaseUtils.readText("?:");
         switch (choice) {
             case "1" -> authUI.updateUser();
             case "2" -> authUI.resetPassword();
             case "0" -> {
                 return;
-            }
-            case "q" -> {
-                BaseUtils.println("Bye", Colors.CYAN);
-                System.exit(0);
             }
             default -> BaseUtils.println("Wrong Choice", Colors.RED);
         }
@@ -172,7 +170,7 @@ public class AuthUI {
                 .newPassword(BaseUtils.readText("Old password: "))
                 .newPassword(BaseUtils.readText("New password: "))
                 .confirmPassword(BaseUtils.readText("New password again: ")).build();
-        serviceUser.resetPassword(resetPasswordVO);
+        print_response(serviceUser.resetPassword(resetPasswordVO));
     }
 
     private void updateUser() {
@@ -185,7 +183,6 @@ public class AuthUI {
         /***
          * ME
          */
-
     }
 
     private void subjectCRUD() {
@@ -194,7 +191,6 @@ public class AuthUI {
         BaseUtils.println("Update subject    -> 3");
         BaseUtils.println("Delete subject    -> 4");
         BaseUtils.println("Back              -> 0");
-        BaseUtils.println("Quit -> q");
 
         String choice = BaseUtils.readText("?:");
         switch (choice) {
@@ -205,23 +201,21 @@ public class AuthUI {
             case "0" -> {
                 return;
             }
-            case "q" -> {
-                BaseUtils.println("Bye", Colors.CYAN);
-                System.exit(0);
-            }
             default -> BaseUtils.println("Wrong Choice", Colors.RED);
         }
         subjectCRUD();
     }
 
     private void subjectDelete() {
-
+        /***
+         * Shohruh aka
+         */
     }
 
     private void subjectUpdate() {
         SubjectUpdateVO vo = SubjectUpdateVO.childBuilder()
                 .current_name(BaseUtils.readText("enter subject name to update: "))
-                .new_name(BaseUtils.readText("enter new name"))
+                .new_name(BaseUtils.readText("enter new name : "))
                 .build();
         print_response(serviceSubject.update(vo));
     }
@@ -235,15 +229,21 @@ public class AuthUI {
     }
 
     private void deleteQuiz() {
-
+        /***
+         * Jahongir aka
+         */
     }
 
     private void updateQuiz() {
-
+        /***
+         * Jahongir aka
+         */
     }
 
     private void quizListShow() {
-
+        /***
+         * Jahongir aka
+         */
     }
 
     private void quizCreate() {
@@ -292,20 +292,24 @@ public class AuthUI {
     }
 
     private void showHistory() {
-
+        /***
+         * Mirfayz
+         */
     }
 
     private void solveTest() {
-
+        /***
+         * Team work (developing some ideas by Shohruh aka)
+         */
     }
 
     private void subjectShowList() {
-        Optional subjects = authUserDAO.subjectShowList();
+        Optional subjects = serviceSubject.subjectShowList();
         List<Subject> subjectList = (List<Subject>) subjects.get();
         if (subjectList.isEmpty()) {
             BaseUtils.println("Subject not found", Colors.GREEN);
         } else {
-            subjectList.forEach(subject -> BaseUtils.println(subject,Colors.GREEN));
+            subjectList.forEach(subject -> BaseUtils.println(subject, Colors.GREEN));
         }
     }
 
@@ -326,6 +330,6 @@ public class AuthUI {
 
     public void print_response(Response response) {
         String color = !response.isOk() ? Colors.RED : Colors.GREEN;
-        BaseUtils.println(BaseUtils.gson.toJson(response.getBody()), color);
+        BaseUtils.println(BaseUtils.gson.toJson(response), color);
     }
 }

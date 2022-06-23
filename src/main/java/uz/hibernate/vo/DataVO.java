@@ -23,5 +23,8 @@ public class DataVO<T> {
         this.success = true;
     }
 
-
+    public DataVO(T body, boolean success) {
+        this.body = body;
+        this.success = success;
+    }
 }

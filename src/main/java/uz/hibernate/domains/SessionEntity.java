@@ -31,7 +31,7 @@ public class SessionEntity {
 
     private Timestamp firstLoggedIn;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinColumn(name = "auth_user_id")
     private AuthUser authUser;
 }

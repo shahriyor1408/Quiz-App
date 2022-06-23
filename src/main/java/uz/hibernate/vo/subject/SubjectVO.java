@@ -11,7 +11,6 @@ import uz.hibernate.vo.GenericVO;
 @AllArgsConstructor
 public class SubjectVO extends GenericVO {
     private String name;
-
     @Builder(builderMethodName = "childBuilder")
     public SubjectVO(long id, String name) {
         super(id);

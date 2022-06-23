@@ -7,12 +7,16 @@ import uz.hibernate.dao.subject.SubjectDAO;
 import uz.hibernate.domains.Subject;
 import uz.hibernate.exceptions.CustomSQLException;
 import uz.hibernate.utils.BaseUtil;
+import uz.hibernate.vo.AppErrorVO;
+import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.http.Response;
 import uz.hibernate.vo.subject.SubjectCreateVO;
 import uz.hibernate.vo.subject.SubjectUpdateVO;
 import uz.hibernate.vo.subject.SubjectVO;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,49 +38,53 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
     }
 
     @Override
-    public Response<Long> create(@NonNull SubjectCreateVO vo) {
+    public Response<DataVO<Long>> create(@NonNull SubjectCreateVO vo) {
         Optional<Subject> optionalSubject = dao.findByName(vo.getName());
         if (optionalSubject.isPresent()) {
-            throw new RuntimeException("subject already exist!");
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("This subject is already added!")
+                    .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                    .build()),false);
         }
         Subject subject = Subject
                 .childBuilder()
                 .name(vo.getName())
                 .createdBy(vo.getCreatedBy())
                 .build();
-        return new Response<>(dao.save(subject).getId());
+        return new Response<>(new DataVO<>(dao.save(subject).getId()));
     }
 
     @Override
-    public Response<Void> update(@NonNull SubjectUpdateVO vo) {
+    public Response<DataVO<Void>> update(@NonNull SubjectUpdateVO vo) {
         Optional<Subject> optionalAuthUser = dao.findByName(vo.getCurrent_name());
-        if (optionalAuthUser.isPresent()) {
-            throw new RuntimeException("subject already exist!");
+        if (optionalAuthUser.isEmpty()) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Such subject not found")
+                    .build()), false);
         }
-
-        SubjectDAO dao1 = new SubjectDAO();
         try {
-            dao1.update(vo.getCurrent_name(), vo.getNew_name(), Session.sessionUser.getId());
-        } catch (CustomSQLException e) {
-            throw new RuntimeException(e.getCause().getLocalizedMessage());
+            dao.update(vo.getCurrent_name(), vo.getNew_name(), Session.sessionUser.getId());
+            return new Response<>(new DataVO<>(null, true));
+        } catch (Exception e) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getCause().getLocalizedMessage())
+                    .build()),false);
         }
+    }
 
-
+    @Override
+    public Response<DataVO<Void>> delete(@NonNull Long aLong) {
         return null;
     }
 
     @Override
-    public Response<Void> delete(@NonNull Long aLong) {
+    public Response<DataVO<SubjectVO>> get(@NonNull Long aLong) {
         return null;
     }
 
     @Override
-    public Response<SubjectVO> get(@NonNull Long aLong) {
-        return null;
-    }
-
-    @Override
-    public Response<List<SubjectVO>> getAll() {
+    public Response<DataVO<List<SubjectVO>>> getAll() {
         return null;
     }
 
@@ -85,5 +93,9 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
             instance = new SubjectService();
         }
         return instance;
+    }
+
+    public Optional subjectShowList() {
+        return dao.subjectShowList();
     }
 }
