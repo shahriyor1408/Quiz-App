@@ -155,7 +155,5 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         if (Objects.isNull(authUser)) {
             throw new RuntimeException("User not found!");
         }
-
-
     }
 }
