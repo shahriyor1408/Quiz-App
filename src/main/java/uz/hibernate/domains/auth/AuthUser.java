@@ -3,6 +3,7 @@ package uz.hibernate.domains.auth;
 import jakarta.persistence.*;
 import lombok.*;
 import uz.hibernate.domains.Auditable;
+import uz.hibernate.domains.Subject;
 import uz.hibernate.domains.TestHistory;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.enums.Status;

@@ -3,9 +3,11 @@ package uz.hibernate.config;
 import uz.hibernate.dao.auth.AuthUserDAO;
 import uz.hibernate.dao.quiz.AnswerDAO;
 import uz.hibernate.dao.quiz.QuestionDAO;
+import uz.hibernate.dao.subject.SubjectDAO;
 import uz.hibernate.service.AnswerService;
 import uz.hibernate.service.AuthUserService;
 import uz.hibernate.service.QuestionService;
+import uz.hibernate.service.SubjectService;
 import uz.hibernate.utils.BaseUtil;
 
 public class ApplicationContextHolder {
@@ -18,6 +20,8 @@ public class ApplicationContextHolder {
             case "BaseUtil" -> (T) BaseUtil.getInstance();
             case "QuestionDAO" -> (T) QuestionDAO.getInstance();
             case "QuestionService" -> (T) QuestionService.getInstance();
+            case "SubjectDAO" -> (T) SubjectDAO.getInstance();
+            case "SubjectService" -> (T) SubjectService.getInstance();
             case "AnswerDAO" -> (T) AnswerDAO.getInstance();
             case "AnswerService" -> (T) AnswerService.getInstance();
             default -> throw new RuntimeException("Bean Not Found");

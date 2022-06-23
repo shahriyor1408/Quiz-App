@@ -22,11 +22,11 @@ public class Question extends Auditable {
     private QuestionType type;
 
     @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "subject_id")
+    @JoinColumn(name = "question_id")
     @OrderColumn(name = "type")
     List<Answer> answerList = new ArrayList<>();
 
-    private final Integer answer_count = 4;
+    private final Integer answer_count = 3;
 
     @Builder(builderMethodName = "childBuilder")
     public Question(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String text, QuestionType type) {

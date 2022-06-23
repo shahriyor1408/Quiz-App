@@ -2,6 +2,7 @@ package uz.hibernate.domains;
 
 import jakarta.persistence.*;
 import lombok.*;
+import uz.hibernate.domains.auth.AuthUser;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -26,6 +27,11 @@ public class Subject extends Auditable {
     @JoinColumn(name = "subject_id")
     @OrderColumn(name = "type")
     private List<TestHistory> testHistoryList = new ArrayList<>();
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id")
+    @OrderColumn(name = "type")
+    private AuthUser authUser = new AuthUser();
 
     @Builder(builderMethodName = "childBuilder")
     public Subject(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String name) {

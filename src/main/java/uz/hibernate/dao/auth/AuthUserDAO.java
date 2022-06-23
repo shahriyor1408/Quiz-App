@@ -93,10 +93,6 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
     }
 
     public Optional subjectShowList() {
-        Session currentSession = getSession();
-        currentSession.beginTransaction();
-        List subject = currentSession.createQuery("FROM Subject").list();
-        currentSession.getTransaction().commit();
-        return Optional.ofNullable(subject);
+        return null;
     }
 }

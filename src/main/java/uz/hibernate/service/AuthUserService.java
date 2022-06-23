@@ -21,6 +21,7 @@ import uz.hibernate.vo.http.Response;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class AuthUserService extends AbstractDAO<AuthUserDAO> implements GenericCRUDService<
@@ -137,8 +138,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         }
 
 
-
-        if(!resetPasswordVO.getNewPassword().equals(resetPasswordVO.getConfirmPassword())){
+        if (!resetPasswordVO.getNewPassword().equals(resetPasswordVO.getConfirmPassword())) {
             throw new RuntimeException("Confirm password in not valid");
         }
 
@@ -147,6 +147,15 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
 //        }
 
         resetPasswordVO.setNewPassword(utils.encode(resetPasswordVO.getNewPassword()));
-        dao.resetPassword(resetPasswordVO,optionalSession.get().getAuthUser().getId());
+        dao.resetPassword(resetPasswordVO, optionalSession.get().getAuthUser().getId());
+    }
+
+    public void giveTeacherPermission(String id, String s_id) {
+        AuthUser authUser = dao.findById(Long.valueOf(id));
+        if (Objects.isNull(authUser)) {
+            throw new RuntimeException("User not found!");
+        }
+
+
     }
 }

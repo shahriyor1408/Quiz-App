@@ -20,14 +20,7 @@ public class Answer extends Auditable {
     private String variantB;
     @Column(nullable = false, unique = true)
     private String variantC;
-
     private String correctAnswer;
-
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "question_id")
-    @OrderColumn(name = "type")
-    List<Question> questionList = new ArrayList<>();
-
 
     @Builder(builderMethodName = "childBuilder")
     public Answer(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String variantA, String variantB, String variantC, String correctAnswer) {

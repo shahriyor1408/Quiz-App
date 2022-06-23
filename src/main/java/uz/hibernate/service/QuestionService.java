@@ -43,6 +43,7 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
         if (questionOptional.isPresent()) {
             throw new RuntimeException("Question already exist!");
         }
+
         Question question = Question.childBuilder()
                 .text(vo.getText())
                 .type(vo.getType())
