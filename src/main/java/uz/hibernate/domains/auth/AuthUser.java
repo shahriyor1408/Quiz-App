@@ -39,6 +39,9 @@ public class AuthUser extends Auditable {
     @OrderColumn(name = "type")
     private List<TestHistory> testHistoryList = new ArrayList<>();
 
+    @OneToOne(mappedBy = "authUser")
+    private Subject subject;
+
     @Builder(builderMethodName = "childBuilder")
     public AuthUser(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String username, String password, String email, AuthRole role, Status status) {
         super(id, createdAt, createdBy, updatedAt, updatedBy, deleted);

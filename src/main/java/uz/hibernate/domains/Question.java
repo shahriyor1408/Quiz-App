@@ -26,12 +26,17 @@ public class Question extends Auditable {
     @OrderColumn(name = "type")
     List<Answer> answerList = new ArrayList<>();
 
+    @ManyToOne
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
+
     private final Integer answer_count = 3;
 
     @Builder(builderMethodName = "childBuilder")
-    public Question(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String text, QuestionType type) {
+    public Question(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String text, QuestionType type, Subject subject) {
         super(id, createdAt, createdBy, updatedAt, updatedBy, deleted);
         this.text = text;
         this.type = type;
+        this.subject = subject;
     }
 }

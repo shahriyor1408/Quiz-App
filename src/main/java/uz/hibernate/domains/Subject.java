@@ -18,9 +18,7 @@ public class Subject extends Auditable {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "subject_id")
-    @OrderColumn(name = "type")
+    @OneToMany(mappedBy = "subject")
     private List<Question> questionList = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL)
@@ -29,9 +27,9 @@ public class Subject extends Auditable {
     private List<TestHistory> testHistoryList = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     @OrderColumn(name = "type")
-    private AuthUser authUser = new AuthUser();
+    private AuthUser authUser;
 
     @Builder(builderMethodName = "childBuilder")
     public Subject(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String name) {
