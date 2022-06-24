@@ -21,10 +21,12 @@ import uz.hibernate.vo.auth.AuthUserVO;
 import uz.hibernate.vo.auth.ResetPasswordVO;
 import uz.hibernate.vo.http.Response;
 
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class AuthUserService extends AbstractDAO<AuthUserDAO> implements GenericCRUDService<
@@ -70,12 +72,26 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
 
     @Override
     public Response<DataVO<Void>> update(@NonNull AuthUserUpdateVO vo) {
-        return null;
+        try {
+            dao.updateUser(vo);
+            return new Response<>(new DataVO<>(null, true));
+        } catch (Exception e) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage(e.getMessage())
+                    .build()), false);
+        }
     }
 
     @Override
     public Response<DataVO<Void>> delete(@NonNull Long id) {
-        return null;
+        try {
+            dao.deleteById(id);
+            return new Response<>(new DataVO<>(null, true));
+        } catch (Exception e) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage(e.getMessage())
+                    .build()), false);
+        }
     }
 
     @Override
@@ -95,6 +111,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
                     .email(authUser.getEmail())
                     .role(authUser.getRole())
                     .createdAt(authUser.getCreatedAt())
+                    .is_deleted(authUser.isDeleted())
                     .build());
         }
 
@@ -111,7 +128,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
     public Response<DataVO<AuthUserVO>> login(String username, String password) {
         Optional<AuthUser> response = dao.findByUserName(username);
 
-        if (response.isEmpty()) {
+        if (response.isEmpty() || response.get().isDeleted()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage("User not found!")
                     .build()), false);
@@ -125,6 +142,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         }
 
         AuthUserVO authUserVO = AuthUserVO.childBuilder()
+                .id(authUser.getId())
                 .username(authUser.getUsername())
                 .email(authUser.getEmail())
                 .role(authUser.getRole())
@@ -165,13 +183,13 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
     }
 
     public Response<DataVO<Void>> resetPassword(ResetPasswordVO resetPasswordVO) {
-        Optional<SessionEntity> optionalSession = dao.findByIdSession(Session.sessionUser.getUserId());
-        if (optionalSession.isEmpty()) {
+        AuthUser authUser = dao.findById(Session.sessionUser.getUserId());
+
+        if (Objects.isNull(authUser)) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
-                    .friendlyMessage("Session user not found!")
+                    .friendlyMessage("User not found!")
                     .build()), false);
         }
-
 
         if (!resetPasswordVO.getNewPassword().equals(resetPasswordVO.getConfirmPassword())) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
@@ -179,25 +197,26 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
                     .build()), false);
         }
 
-//        if(!utils.matchPassword(resetPasswordVO.getOldPassword(), authUser.getPassword())){
-//            throw new RuntimeException("Password is not correct!");
-//        }
-
+        if (utils.matchPassword(resetPasswordVO.getOldPassword(), authUser.getPassword())) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Old password is not valid!")
+                    .build()), false);
+        }
         resetPasswordVO.setNewPassword(utils.encode(resetPasswordVO.getNewPassword()));
-        dao.resetPassword(resetPasswordVO, optionalSession.get().getAuthUser().getId());
+        dao.resetPassword(resetPasswordVO, Session.sessionUser.getUserId());
         return new Response<>(new DataVO<>(null, true));
     }
 
     public Response<DataVO<Void>> giveTeacherPermission(String username, String subjectName) {
         Optional<AuthUser> userOptional = dao.findByUserName(username);
 
-        if (userOptional.isEmpty()) {
+        if (userOptional.isEmpty() || userOptional.get().isDeleted()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage("Such user not found!")
                     .build()), false);
         }
         Optional<Subject> subjectOptional = subjectService.findByName(subjectName);
-        if (subjectOptional.isEmpty()) {
+        if (subjectOptional.isEmpty() || subjectOptional.get().isDeleted()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage("Subject not found!")
                     .build()), false);

@@ -25,13 +25,13 @@ public class QuestionDAO extends GenericDAO<Question, Long> {
         return instance;
     }
 
-    public Optional<Question> findByText(String in_text) {
+    public Optional<Question> findByText(String in_text) throws Exception {
         Session session = getSession();
         if (!session.getTransaction().isActive()) {
             session.beginTransaction();
         }
         Query<Question> query = session
-                .createQuery("select t from Question t where lower(t.text) = lower(:in_text) ",
+                .createQuery("select t from Question t where (t.text) = (:in_text) ",
                         Question.class);
         query.setParameter("in_text", in_text);
         Optional<Question> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());

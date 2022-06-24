@@ -8,9 +8,15 @@ import uz.hibernate.config.HibernateUtils;
 import uz.hibernate.dao.GenericDAO;
 import uz.hibernate.domains.Subject;
 import uz.hibernate.exceptions.CustomSQLException;
+import uz.hibernate.service.GenericCRUDService;
+import uz.hibernate.vo.BaseVO;
+import uz.hibernate.vo.GenericVO;
 
+import java.io.Serializable;
+import java.lang.reflect.Type;
 import java.sql.CallableStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,7 +35,7 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
 
     public Optional<Subject> findByName(String in_name) {
         Session session = getSession();
-        if(!session.getTransaction().isActive()){
+        if (!session.getTransaction().isActive()) {
             session.beginTransaction();
         }
         Query<Subject> query = session
@@ -41,29 +47,31 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
         return resultOrNull;
     }
 
-    public Optional<String> update(String current_name, String new_name, Long updater) throws SQLException {
+    public void update(String current_name, String new_name, Long updater) throws SQLException {
         String result;
         Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-        session.beginTransaction();
+        if (!session.getTransaction().isActive()) {
+            session.beginTransaction();
+        }
         CallableStatement callableStatement = session.doReturningWork(connection -> {
             CallableStatement function = connection.prepareCall(
-                    "select subject_update(?,?,?)"
+                    "{? = call subject_update(?,?,?)}"
             );
-            function.setString(1, current_name);
-            function.setString(2, new_name);
-            function.setString(3, String.valueOf(updater));
+            function.registerOutParameter(1, Types.VARCHAR);
+            function.setString(2, current_name);
+            function.setString(3, new_name);
+            function.setLong(4, updater);
             function.execute();
             return function;
         });
         result = callableStatement.getString(1);
         Optional<String> optional = Optional.of(result);
         session.getTransaction().commit();
-        return optional;
     }
 
     public Optional<List<Subject>> subjectShowList() {
         Session currentSession = getSession();
-        if(!currentSession.getTransaction().isActive()){
+        if (!currentSession.getTransaction().isActive()) {
             currentSession.beginTransaction();
         }
         List<Subject> subjects = currentSession.createQuery("from Subject", Subject.class).getResultList();
@@ -74,15 +82,54 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
 
     public Optional<Subject> findByUserId(Long userId) {
         Session session = getSession();
-        if(!session.getTransaction().isActive()){
+        if (!session.getTransaction().isActive()) {
             session.beginTransaction();
         }
         Query<Subject> query = session
-                .createQuery("select t from Subject t where (t.authUser.id) = (:userId) ",
+                .createQuery("select t from Subject t where t.deleted = false and (t.authUser.id) = (:userId) ",
                         Subject.class);
         query.setParameter("userId", userId);
         Optional<Subject> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
         return resultOrNull;
+    }
+
+    public Optional<Subject> findSubjectById(Long id) {
+        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
+        if (!session.getTransaction().isActive()) {
+            session.beginTransaction();
+        }
+        Query<Subject> query = session
+                .createQuery("select t from Subject t where t.id = :id ",
+                        Subject.class);
+        query.setParameter("id", id);
+        Optional<Subject> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
+        session.getTransaction().commit();
+
+        return resultOrNull;
+    }
+
+    public Optional<String> delete(String name, Long updater) throws SQLException {
+        String result;
+        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
+        session.beginTransaction();
+
+        try {
+            CallableStatement callableStatement = session.doReturningWork(connection -> {
+                CallableStatement function = connection.prepareCall(
+                        "{ ? = call subject_delete(?,?) }"
+                );
+                function.registerOutParameter(1, Types.VARCHAR);
+                function.setString(2, name);
+                function.setInt(3, Math.toIntExact(updater));
+                function.execute();
+                return function;
+            });
+            result = callableStatement.getString(1);
+            return Optional.of(result);
+        } finally {
+            session.getTransaction().commit();
+            session.close();
+        }
     }
 }

@@ -8,6 +8,7 @@ import uz.hibernate.config.HibernateUtils;
 import uz.hibernate.dao.GenericDAO;
 import uz.hibernate.domains.SessionEntity;
 import uz.hibernate.domains.auth.AuthUser;
+import uz.hibernate.vo.auth.AuthUserUpdateVO;
 import uz.hibernate.vo.auth.ResetPasswordVO;
 import uz.jl.BaseUtils;
 
@@ -32,7 +33,7 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
             session.beginTransaction();
         }
         Query<AuthUser> query = session
-                .createQuery("select t from AuthUser t where lower(t.username) = lower(:username) ",
+                .createQuery("select t from AuthUser t where (t.username) = (:username) ",
                         AuthUser.class);
         query.setParameter("username", username);
         Optional<AuthUser> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
@@ -78,14 +79,16 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
 
     public void resetPassword(ResetPasswordVO resetPasswordVO, Long id) {
         Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-        session.beginTransaction();
+        if (!session.getTransaction().isActive()) {
+            session.beginTransaction();
+        }
         try {
             CallableStatement callableStatement = session.doReturningWork(connection -> {
                 CallableStatement function = connection.prepareCall(
                         "{ ? = call reset_password(?,?)}"
                 );
                 function.registerOutParameter(1, Types.BIGINT);
-                function.setString(2, BaseUtils.gson.toJson(resetPasswordVO));
+                function.setString(2, resetPasswordVO.getNewPassword());
                 function.setLong(3, id);
                 function.execute();
                 return function;
@@ -106,6 +109,26 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
                 function.registerOutParameter(1, Types.BIGINT);
                 function.setString(2, username);
                 function.setString(3, subjectName);
+                function.execute();
+                return function;
+            });
+        } finally {
+            session.getTransaction().commit();
+        }
+    }
+
+    public void updateUser(AuthUserUpdateVO vo) throws Exception {
+        Session session = getSession();
+        if (!session.getTransaction().isActive()) {
+            session.beginTransaction();
+        }
+        try {
+            CallableStatement callableStatement = session.doReturningWork(connection -> {
+                CallableStatement function = connection.prepareCall(
+                        "{ ? = call update_user(?)}"
+                );
+                function.registerOutParameter(1, Types.BIGINT);
+                function.setString(2, BaseUtils.gson.toJson(vo));
                 function.execute();
                 return function;
             });

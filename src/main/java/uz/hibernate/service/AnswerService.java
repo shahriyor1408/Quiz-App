@@ -10,13 +10,17 @@ import uz.hibernate.domains.Question;
 import uz.hibernate.utils.BaseUtil;
 import uz.hibernate.vo.AppErrorVO;
 import uz.hibernate.vo.DataVO;
+import uz.hibernate.vo.Session;
 import uz.hibernate.vo.http.Response;
 import uz.hibernate.vo.quiz.AnswerCreateVO;
 import uz.hibernate.vo.quiz.AnswerUpdateVO;
 import uz.hibernate.vo.quiz.AnswerVO;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUDService<
         AnswerVO,
@@ -62,7 +66,23 @@ public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUD
 
     @Override
     public Response<DataVO<Void>> update(@NonNull AnswerUpdateVO vo) {
-        return null;
+        Optional<Answer> optionalAnswer = dao.findAnswerById(vo.getId());
+        if (optionalAnswer.isEmpty()) {
+            throw new RuntimeException("Answer not found!");
+        }
+        Answer answer = Answer.childBuilder()
+                .id(vo.getId())
+                .variantA(vo.getVariantA())
+                .variantB(vo.getVariantB())
+                .variantC(vo.getVariantC())
+                .correctAnswer(vo.getCorrectAnswer())
+                .updatedBy(Session.sessionUser.getUserId())
+                .updatedAt(Timestamp.valueOf(LocalDateTime.now()))
+                .build();
+
+        AnswerDAO answerDAO = new AnswerDAO();
+        Optional<String> optionalS = answerDAO.updateAnswer(answer);
+        return new Response<>(new DataVO<>(null, true));
     }
 
     @Override

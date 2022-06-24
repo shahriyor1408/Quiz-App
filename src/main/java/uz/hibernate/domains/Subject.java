@@ -5,6 +5,7 @@ import lombok.*;
 import uz.hibernate.domains.auth.AuthUser;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,10 +19,10 @@ public class Subject extends Auditable {
     private String name;
 
     @OneToMany(mappedBy = "subject", fetch = FetchType.EAGER)
-    private List<Question> questionList;
+    private List<Question> questionList = new ArrayList<>();
 
     @OneToMany(mappedBy = "subject", fetch = FetchType.EAGER)
-    private List<TestHistory> testHistoryList;
+    private List<TestHistory> testHistoryList = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id",unique = true)

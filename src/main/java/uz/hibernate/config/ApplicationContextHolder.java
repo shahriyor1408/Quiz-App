@@ -4,16 +4,13 @@ import uz.hibernate.dao.auth.AuthUserDAO;
 import uz.hibernate.dao.quiz.AnswerDAO;
 import uz.hibernate.dao.quiz.QuestionDAO;
 import uz.hibernate.dao.subject.SubjectDAO;
-import uz.hibernate.service.AnswerService;
-import uz.hibernate.service.AuthUserService;
-import uz.hibernate.service.QuestionService;
-import uz.hibernate.service.SubjectService;
+import uz.hibernate.service.*;
 import uz.hibernate.utils.BaseUtil;
 
 public class ApplicationContextHolder {
 
     @SuppressWarnings("unchecked")
-    public static  <T> T getBean(String beanName) {
+    public static <T> T getBean(String beanName) {
         return switch (beanName) {
             case "AuthUserDAO" -> (T) AuthUserDAO.getInstance();
             case "AuthUserService" -> (T) AuthUserService.getInstance();
@@ -28,7 +25,7 @@ public class ApplicationContextHolder {
         };
     }
 
-    public static  <T> T getBean(Class<T> clazz) {
+    public static <T> T getBean(Class<T> clazz) {
         String beanName = clazz.getSimpleName();
         return getBean(beanName);
     }

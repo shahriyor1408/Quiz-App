@@ -15,12 +15,14 @@ public class QuestionVO extends GenericVO {
     private String text;
     private QuestionType type;
     private Timestamp createdAt;
+    private Long subjectId;
 
     @Builder(builderMethodName = "childBuilder")
-    public QuestionVO(long id, String text, QuestionType type, Timestamp createdAt) {
+    public QuestionVO(long id, String text, QuestionType type, Timestamp createdAt, Long subjectId) {
         super(id);
         this.text = text;
         this.type = type;
         this.createdAt = createdAt;
+        this.subjectId = subjectId;
     }
 }

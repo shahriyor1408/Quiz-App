@@ -17,6 +17,7 @@ import uz.hibernate.vo.subject.SubjectVO;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCRUDService<
@@ -62,7 +63,7 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
                     .build()), false);
         }
         try {
-            dao.update(vo.getCurrent_name(), vo.getNew_name(), Session.sessionUser.getId());
+            dao.update(vo.getCurrent_name(), vo.getNew_name(), Session.sessionUser.getUserId());
             return new Response<>(new DataVO<>(null, true));
         } catch (Exception e) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
@@ -74,12 +75,39 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
 
     @Override
     public Response<DataVO<Void>> delete(@NonNull Long aLong) {
-        return null;
+        Subject subject = dao.findById(aLong);
+        if (Objects.isNull(subject)) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Subject not found!")
+                    .build()), false);
+        }
+
+        SubjectDAO dao1 = SubjectDAO.getInstance();
+        try {
+            dao1.delete(subject.getName(), Session.sessionUser.getId());
+            return new Response<>(new DataVO<>(null, true));
+        } catch (Exception e) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getCause().getLocalizedMessage())
+                    .build()), false);
+        }
     }
 
     @Override
     public Response<DataVO<SubjectVO>> get(@NonNull Long aLong) {
-        return null;
+        Optional<Subject> optionalSubject = dao.findSubjectById(aLong);
+        if (optionalSubject.isEmpty()) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("This subject is not found")
+                    .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                    .build()), false);
+        }
+        Subject subject = optionalSubject.get();
+        return new Response<>(new DataVO<>(SubjectVO.childBuilder()
+                .name(subject.getName())
+                .id(subject.getId())
+                .build()), true);
     }
 
     @Override

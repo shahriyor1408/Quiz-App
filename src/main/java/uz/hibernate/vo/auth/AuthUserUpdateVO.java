@@ -16,4 +16,13 @@ public class AuthUserUpdateVO extends GenericVO {
     private String email;
     private AuthRole role;
     private Status status;
+
+    @Builder(builderMethodName = "childBuilder")
+    public AuthUserUpdateVO(long id, String username, String email, AuthRole role, Status status) {
+        super(id);
+        this.username = username;
+        this.email = email;
+        this.role = role;
+        this.status = status;
+    }
 }

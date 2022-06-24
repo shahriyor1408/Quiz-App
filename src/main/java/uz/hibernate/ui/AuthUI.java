@@ -2,26 +2,28 @@ package uz.hibernate.ui;
 
 import uz.hibernate.config.ApplicationContextHolder;
 import uz.hibernate.dao.auth.AuthUserDAO;
+import uz.hibernate.dao.subject.SubjectDAO;
 import uz.hibernate.domains.Subject;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.enums.QuestionType;
-import uz.hibernate.service.AnswerService;
-import uz.hibernate.service.AuthUserService;
-import uz.hibernate.service.QuestionService;
-import uz.hibernate.service.SubjectService;
+import uz.hibernate.service.*;
 import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.auth.AuthUserCreateVO;
+import uz.hibernate.vo.auth.AuthUserUpdateVO;
 import uz.hibernate.vo.auth.ResetPasswordVO;
 import uz.hibernate.vo.http.Response;
 import uz.hibernate.vo.quiz.AnswerCreateVO;
+import uz.hibernate.vo.quiz.AnswerUpdateVO;
 import uz.hibernate.vo.quiz.QuestionCreateVO;
 import uz.hibernate.vo.quiz.QuestionUpdateVO;
 import uz.hibernate.vo.subject.SubjectCreateVO;
 import uz.hibernate.vo.subject.SubjectUpdateVO;
+import uz.hibernate.vo.subject.SubjectVO;
 import uz.jl.BaseUtils;
 import uz.jl.Colors;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +50,7 @@ public class AuthUI {
                 BaseUtils.println("Show quiz list -> 8");
                 BaseUtils.println("Update quiz    -> 9");
                 BaseUtils.println("Delete quiz    -> 10");
-                BaseUtils.println("Answer CRUD    -> 11");
+                BaseUtils.println("Answer update  -> 11");
             } else if (Session.sessionUser.getRole().equals(AuthRole.ADMIN)) {
                 BaseUtils.println("Show subjects     -> 3");
                 BaseUtils.println("Solve test        -> 4");
@@ -60,7 +62,6 @@ public class AuthUI {
             }
             BaseUtils.println("Logout    -> 0");
         }
-
         BaseUtils.println("Quit -> q");
         String choice = BaseUtils.readText("?:");
         switch (choice) {
@@ -74,7 +75,7 @@ public class AuthUI {
             case "8" -> authUI.quizListShow();
             case "9" -> authUI.updateQuiz();
             case "10" -> authUI.deleteQuiz();
-            case "11" -> authUI.answerCRUD();
+            case "11" -> authUI.answerUpdate();
             case "12" -> authUI.blockUser();
             case "13" -> authUI.subjectCRUD();
             case "14" -> authUI.showAllUsers();
@@ -104,42 +105,38 @@ public class AuthUI {
         print_response(serviceUser.giveTeacherPermission(username, subjectName));
     }
 
-    private void answerCRUD() {
-        BaseUtils.println("Create answer    -> 1");
-        BaseUtils.println("Show answer list -> 2");
-        BaseUtils.println("Update answer    -> 3");
-        BaseUtils.println("Delete answer    -> 4");
-        BaseUtils.println("Back             -> 0");
-
-        String choice = BaseUtils.readText("?:");
-        switch (choice) {
-            case "1" -> authUI.answerShowList();
-            case "2" -> authUI.answerUpdate();
-            case "3" -> authUI.answerDelete();
-            case "4" -> {
-                return;
-            }
-            default -> BaseUtils.println("Wrong Choice", Colors.RED);
-        }
-        answerCRUD();
-    }
-
-    private void answerDelete() {
-        /***
-         * Javohir
-         */
-    }
-
     private void answerUpdate() {
         /***
          * Javohir
          */
-    }
+        String answerId = BaseUtils.readText("Enter answer id to update answers : ");
 
-    private void answerShowList() {
-        /***
-         * Javohir
-         */
+        BaseUtils.println("Enter new variants one by one  :  ");
+        String variantA = BaseUtils.readText("Enter variant A : ");
+        String variantB = BaseUtils.readText("Enter variant B : ");
+        String variantC = BaseUtils.readText("Enter variant C : ");
+
+        String correctAnswer = BaseUtils.readText("Enter variant correct answer for example \"A\" : ");
+        switch (correctAnswer) {
+            case "A" -> correctAnswer = variantA;
+            case "B" -> correctAnswer = variantB;
+            case "C" -> correctAnswer = variantC;
+            default -> {
+                correctAnswer = variantA;
+            }
+        }
+
+        BaseUtils.println("******* Updating process ******", Colors.YELLOW);
+
+        AnswerUpdateVO vo = AnswerUpdateVO.childBuilder()
+                .id(Long.parseLong(answerId))
+                .variantA(variantA)
+                .variantB(variantB)
+                .variantC(variantC)
+                .correctAnswer(correctAnswer)
+                .build();
+
+        print_response(answerService.update(vo));
     }
 
     private void showAllUsers() {
@@ -174,12 +171,36 @@ public class AuthUI {
         /***
          * ME
          */
+        BaseUtils.println("***** Choose option you want to update *****", Colors.YELLOW);
+        BaseUtils.println("Username     -> 1");
+        BaseUtils.println("Email        -> 2");
+        String choice = BaseUtils.readText("?: ");
+
+        String username = null;
+        String email = null;
+
+        switch (choice) {
+            case "1" -> username = BaseUtils.readText("Enter new username: ");
+            case "2" -> email = BaseUtils.readText("Enter new email: ");
+            default -> {
+                BaseUtils.println("Wrong choice", Colors.RED);
+                return;
+            }
+        }
+        AuthUserUpdateVO authUserUpdateVO = AuthUserUpdateVO.childBuilder()
+                .id(Session.sessionUser.getUserId())
+                .username(username)
+                .email(email)
+                .build();
+        print_response(serviceUser.update(authUserUpdateVO));
     }
 
     private void blockUser() {
         /***
          * ME
          */
+        String id = BaseUtils.readText("Enter id: ");
+        print_response(serviceUser.delete(Long.valueOf(id)));
     }
 
     private void subjectCRUD() {
@@ -207,6 +228,16 @@ public class AuthUI {
         /***
          * Shohruh aka
          */
+        SubjectVO vo = SubjectVO.childBuilder()
+                .name(BaseUtils.readText("enter subject name to delete: "))
+                .build();
+
+        SubjectDAO dao=SubjectDAO.getInstance();
+        Optional<Subject> subject = dao.findByName(vo.getName());
+        if (subject.isEmpty()) {
+            throw new RuntimeException("subject does not exist!");
+        }
+        print_response(serviceSubject.delete(subject.get().getId()));
     }
 
     private void subjectUpdate() {
@@ -268,6 +299,8 @@ public class AuthUI {
         /***
          * Jahongir aka
          */
+        BaseUtils.println("********** Question list  *************");
+        print_response(questionService.getAll());
     }
 
     private void quizCreate() {
@@ -320,6 +353,30 @@ public class AuthUI {
         /***
          * Team work (developing some ideas by Shohruh aka)
          */
+        BaseUtils.println("Choose subject: ");
+        subjectShowList();
+        String subjectId = BaseUtils.readText("Enter subject id: ");
+
+        print_response(SubjectService.getInstance().get(Long.valueOf(subjectId)));
+        BaseUtils.println("Subject has successfully found!", Colors.PURPLE);
+        BaseUtils.println("Choose difficulty level: ");
+        BaseUtils.println(QuestionType.EASY.name() + " -> 1");
+        BaseUtils.println(QuestionType.MEDIUM.name() + " -> 2");
+        BaseUtils.println(QuestionType.HARD.name() + " -> 3");
+        String quizType = BaseUtils.readText("Choose one option: ");
+        BaseUtils.println("How many quiz do you want to solve ?");
+        String quizNumber = BaseUtils.readText("Enter amount: ");
+
+        switch (quizType) {
+
+            case "1" -> quizType = QuestionType.EASY.name();
+            case "2" -> quizType = QuestionType.MEDIUM.name();
+            case "3" -> quizType = QuestionType.HARD.name();
+            default -> {
+                quizType = QuestionType.EASY.name();
+            }
+
+        }
     }
 
     private void subjectShowList() {

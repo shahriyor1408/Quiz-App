@@ -43,6 +43,9 @@ public class AuthUser extends Auditable {
     @OneToOne(mappedBy = "authUser")
     private Subject subject;
 
+    @OneToOne(mappedBy = "authUser")
+    private SessionEntity sessionEntity;
+
     @Builder(builderMethodName = "childBuilder")
     public AuthUser(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String username, String password, String email, AuthRole role, Status status) {
         super(id, createdAt, createdBy, updatedAt, updatedBy, deleted);

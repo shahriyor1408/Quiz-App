@@ -14,10 +14,12 @@ import uz.hibernate.vo.http.Response;
 import uz.hibernate.vo.quiz.QuestionCreateVO;
 import uz.hibernate.vo.quiz.QuestionUpdateVO;
 import uz.hibernate.vo.quiz.QuestionVO;
+import uz.jl.BaseUtils;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,41 +48,52 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
 
     @Override
     public Response<DataVO<Long>> create(@NonNull QuestionCreateVO vo) {
-        Optional<Question> questionOptional = dao.findByText(vo.getText());
-        Optional<Subject> byUserId = subjectService.getByUserId(Session.sessionUser.getUserId());
-        if (byUserId.isEmpty()) {
+        Optional<Question> questionOptional = null;
+        try {
+            questionOptional = dao.findByText(vo.getText());
+            System.out.println(Session.sessionUser.getUserId());
+            Optional<Subject> byUserId = subjectService.getByUserId(Session.sessionUser.getUserId());
+            if (byUserId.isEmpty()) {
+                return new Response<>(new DataVO<>(AppErrorVO.builder()
+                        .friendlyMessage("Subject not found!")
+                        .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                        .build()), false);
+            }
+            if (questionOptional.isPresent()) {
+                return new Response<>(new DataVO<>(AppErrorVO.builder()
+                        .friendlyMessage("Question already exist!")
+                        .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                        .build()), false);
+            }
+            Question question = Question.childBuilder()
+                    .text(vo.getText())
+                    .type(vo.getType())
+                    .subject(byUserId.get().getAuthUser().getSubject())
+                    .createdBy(Session.sessionUser.getUserId())
+                    .build();
+            return new Response<>(new DataVO<>(dao.save(question).getId()));
+        } catch (Exception e) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
-                    .friendlyMessage("Subject not found!")
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getCause().getLocalizedMessage())
                     .timestamp(Timestamp.valueOf(LocalDateTime.now()))
                     .build()), false);
         }
-        if (questionOptional.isPresent()) {
-            return new Response<>(new DataVO<>(AppErrorVO.builder()
-                    .friendlyMessage("Question already exist!")
-                    .timestamp(Timestamp.valueOf(LocalDateTime.now()))
-                    .build()), false);
-        }
-        Question question = Question.childBuilder()
-                .text(vo.getText())
-                .type(vo.getType())
-                .subject(byUserId.get().getAuthUser().getSubject())
-                .build();
-        return new Response<>(new DataVO<>(dao.save(question).getId()));
     }
 
     @Override
     public Response<DataVO<Void>> update(@NonNull QuestionUpdateVO vo) {
         String textForFind = vo.getCurrentText();
-        Optional<Question> questionOptional = dao.findByText(textForFind);
-        if (questionOptional.isEmpty()) {
-            throw new RuntimeException("Question not found!");
-        }
-        Question question = Question.childBuilder()
-                .text(vo.getText())
-                .type(vo.getType())
-                .build();
-        QuestionDAO dao1 = new QuestionDAO();
         try {
+            Optional<Question> questionOptional = dao.findByText(textForFind);
+            if (questionOptional.isEmpty()) {
+                throw new RuntimeException("Question not found!");
+            }
+            Question question = Question.childBuilder()
+                    .text(vo.getText())
+                    .type(vo.getType())
+                    .build();
+            QuestionDAO dao1 = new QuestionDAO();
             dao1.update(textForFind, question.getText(), question.getType());
             return new Response<>(new DataVO<>(null, true));
         } catch (Exception e) {
@@ -116,6 +129,24 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
 
     @Override
     public Response<DataVO<List<QuestionVO>>> getAll() {
-        return null;
+        List<Question> questions = dao.findAll();
+
+        if(Objects.isNull(questions)){
+            BaseUtils.println("Question list is empty");
+        }
+        List<QuestionVO> questionVOList = new ArrayList<>();
+
+
+        for (Question question : questions) {
+            questionVOList.add(QuestionVO.childBuilder()
+                    .id(question.getId())
+                    .text(question.getText())
+                    .type(question.getType())
+                    .createdAt(question.getCreatedAt())
+                    .subjectId(question.getSubject().getId())
+                    .build());
+        }
+
+        return new Response<>(new DataVO<>(questionVOList));
     }
 }

@@ -2,12 +2,20 @@ package uz.hibernate.dao;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import uz.hibernate.config.HibernateUtils;
+import uz.hibernate.domains.auth.AuthUser;
+import uz.hibernate.vo.AppErrorVO;
+import uz.hibernate.vo.DataVO;
+import uz.hibernate.vo.http.Response;
 
 import java.lang.reflect.ParameterizedType;
+import java.sql.CallableStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class GenericDAO<T, ID> implements BaseDAO {
 
@@ -32,12 +40,19 @@ public class GenericDAO<T, ID> implements BaseDAO {
     }
 
     public void deleteById(ID id) throws SQLException {
-        T entity = findById(id);
         // TODO: 6/20/2022 create your custom exception here
-        if (Objects.isNull(entity)) {
-            throw new SQLException("Object not found by given id '%s'".formatted(id));
-        }
-        getSession().remove(entity);
+        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
+        session.beginTransaction();
+        CallableStatement callableStatement = session.doReturningWork(connection -> {
+            CallableStatement function = connection.prepareCall(
+                    "{ ? = call user_delete(?)}"
+            );
+            function.registerOutParameter(1, Types.BIGINT);
+            function.setLong(2, (Long) id);
+            function.execute();
+            return function;
+        });
+        session.getTransaction().commit();
     }
 
     public void update(T entity) {
@@ -45,12 +60,20 @@ public class GenericDAO<T, ID> implements BaseDAO {
     }
 
     public T findById(ID id) {
-        return getSession().get(persistentClass, id);
+        Session session1 = getSession();
+        if (!session1.getTransaction().isActive()) {
+            session1.beginTransaction();
+        }
+        T t = session1.get(persistentClass, id);
+        session1.getTransaction().commit();
+        return t;
     }
 
     public List<T> findAll() {
         Session session1 = getSession();
-        session1.beginTransaction();
+        if (!session1.getTransaction().isActive()) {
+            session1.beginTransaction();
+        }
         List<T> resultList = session1.createQuery("from " + persistentClass.getSimpleName(), persistentClass)
                 .getResultList();
         session1.getTransaction().commit();
