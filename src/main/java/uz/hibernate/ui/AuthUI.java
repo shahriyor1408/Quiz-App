@@ -232,7 +232,7 @@ public class AuthUI {
                 .name(BaseUtils.readText("enter subject name to delete: "))
                 .build();
 
-        SubjectDAO dao=SubjectDAO.getInstance();
+        SubjectDAO dao = SubjectDAO.getInstance();
         Optional<Subject> subject = dao.findByName(vo.getName());
         if (subject.isEmpty()) {
             throw new RuntimeException("subject does not exist!");
@@ -368,14 +368,10 @@ public class AuthUI {
         String quizNumber = BaseUtils.readText("Enter amount: ");
 
         switch (quizType) {
-
             case "1" -> quizType = QuestionType.EASY.name();
             case "2" -> quizType = QuestionType.MEDIUM.name();
             case "3" -> quizType = QuestionType.HARD.name();
-            default -> {
-                quizType = QuestionType.EASY.name();
-            }
-
+            default -> quizType = QuestionType.EASY.name();
         }
     }
 
