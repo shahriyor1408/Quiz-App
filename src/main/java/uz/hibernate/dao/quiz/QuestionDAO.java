@@ -2,9 +2,15 @@ package uz.hibernate.dao.quiz;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.hibernate.sql.exec.ExecutionException;
+import uz.hibernate.config.HibernateUtils;
 import uz.hibernate.dao.GenericDAO;
 import uz.hibernate.domains.Question;
+import uz.hibernate.enums.QuestionType;
 
+import java.sql.CallableStatement;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -21,7 +27,9 @@ public class QuestionDAO extends GenericDAO<Question, Long> {
 
     public Optional<Question> findByText(String in_text) {
         Session session = getSession();
-        session.beginTransaction();
+        if (!session.getTransaction().isActive()) {
+            session.beginTransaction();
+        }
         Query<Question> query = session
                 .createQuery("select t from Question t where lower(t.text) = lower(:in_text) ",
                         Question.class);
@@ -29,5 +37,56 @@ public class QuestionDAO extends GenericDAO<Question, Long> {
         Optional<Question> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
         return resultOrNull;
+    }
+
+    public void update(String textForFind, String text, QuestionType type) throws Exception {
+        Session currentSession = HibernateUtils.getSessionFactory().getCurrentSession();
+        currentSession.beginTransaction();
+        try {
+            CallableStatement callableStatement = currentSession.doReturningWork(connection -> {
+                CallableStatement function = connection.prepareCall(
+                        "{? = call question_update(?,?,?)}");
+                function.registerOutParameter(1, Types.BIGINT);
+                function.setString(2, textForFind);
+                function.setString(3, text);
+                function.setString(4, String.valueOf(type));
+                function.execute();
+                return function;
+            });
+        } finally {
+            currentSession.getTransaction().commit();
+        }
+    }
+
+    public Optional<Question> findByQuestionId(Long id) {
+        Session session = getSession();
+        if (!session.getTransaction().isActive()) {
+            session.beginTransaction();
+        }
+        Query<Question> query = session
+                .createQuery("select t from Question t where t.id = :questionId and t.deleted = false",
+                        Question.class);
+        query.setParameter("questionId", id);
+        Optional<Question> singleResultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
+        session.getTransaction().commit();
+        return singleResultOrNull;
+    }
+
+    public void delete(Long id) throws SQLException, ExecutionException {
+        Session session1 = HibernateUtils.getSessionFactory().getCurrentSession();
+        session1.beginTransaction();
+        try {
+            CallableStatement callableStatement = session1.doReturningWork(connection -> {
+                CallableStatement function = connection.prepareCall(
+                        "{? = call question_delete(?)}");
+                function.registerOutParameter(1, Types.VARCHAR);
+                function.setString(2, String.valueOf(id));
+                function.execute();
+                return function;
+            });
+            callableStatement.getString(1);
+        } finally {
+            session1.getTransaction().commit();
+        }
     }
 }

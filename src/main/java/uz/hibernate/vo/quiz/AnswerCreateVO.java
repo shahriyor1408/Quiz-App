@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uz.hibernate.domains.Question;
 import uz.hibernate.vo.BaseVO;
 
 @Data
@@ -15,4 +16,5 @@ public class AnswerCreateVO implements BaseVO {
     private String variantB;
     private String variantC;
     private String correctAnswer;
+    private Long questionId;
 }

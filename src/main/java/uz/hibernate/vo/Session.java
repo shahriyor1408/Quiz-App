@@ -20,11 +20,13 @@ public class Session extends GenericVO {
         private Long id;
         private String username;
         private AuthRole role;
+        private Long userId;
 
         public SessionUser(AuthUserVO session) {
             this.id = session.getId();
             this.username = session.getUsername();
             this.role = session.getRole();
+            this.userId = session.getUserId();
         }
     }
 }

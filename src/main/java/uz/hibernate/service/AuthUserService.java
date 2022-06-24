@@ -11,7 +11,6 @@ import uz.hibernate.domains.Subject;
 import uz.hibernate.domains.auth.AuthUser;
 import uz.hibernate.enums.AuthRole;
 import uz.hibernate.enums.Status;
-import uz.hibernate.exceptions.CustomSQLException;
 import uz.hibernate.utils.BaseUtil;
 import uz.hibernate.vo.AppErrorVO;
 import uz.hibernate.vo.DataVO;
@@ -24,8 +23,8 @@ import uz.hibernate.vo.http.Response;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class AuthUserService extends AbstractDAO<AuthUserDAO> implements GenericCRUDService<
@@ -44,7 +43,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         );
     }
 
-    static SubjectDAO subjectDAO = SubjectDAO.getInstance();
+    static SubjectService subjectService = SubjectService.getInstance();
 
     @Override
     @Transactional
@@ -64,6 +63,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
                 .email(vo.getEmail())
                 .role(AuthRole.USER)
                 .status(Status.ACTIVE)
+                .createdBy(-1L)
                 .build();
         return new Response<>(new DataVO<>(dao.save(authUser).getId()));
     }
@@ -85,7 +85,20 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
 
     @Override
     public Response<DataVO<List<AuthUserVO>>> getAll() {
-        return null;
+        List<AuthUser> authUsers = dao.findAll();
+        List<AuthUserVO> userVOList = new ArrayList<>();
+
+        for (AuthUser authUser : authUsers) {
+            userVOList.add(AuthUserVO.childBuilder()
+                    .id(authUser.getId())
+                    .username(authUser.getUsername())
+                    .email(authUser.getEmail())
+                    .role(authUser.getRole())
+                    .createdAt(authUser.getCreatedAt())
+                    .build());
+        }
+
+        return new Response<>(new DataVO<>(userVOList));
     }
 
     public static AuthUserService getInstance() {
@@ -116,6 +129,7 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
                 .email(authUser.getEmail())
                 .role(authUser.getRole())
                 .createdAt(authUser.getCreatedAt())
+                .userId(authUser.getId())
                 .build();
 
         SessionEntity status = SessionEntity.builder()
@@ -123,8 +137,8 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
                 .firstLoggedIn(Timestamp.valueOf(LocalDateTime.now()))
                 .role(authUser.getRole())
                 .status(authUser.getStatus())
+                .authUser(authUser)
                 .build();
-
         dao.saveSession(status);
         authUserVO.setId(status.getId());
         Session.setSessionUser(authUserVO);
@@ -140,18 +154,18 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
         }
         try {
             dao.deleteByIdSession(id);
-        } catch (CustomSQLException e) {
+            return new Response<>(new DataVO<>(null, true));
+        } catch (Exception e) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage(e.getMessage())
                     .developerMessage(e.getCause().getLocalizedMessage())
                     .timestamp(Timestamp.valueOf(LocalDateTime.now()))
                     .build()));
         }
-        return new Response<>(new DataVO<>(null, true));
     }
 
     public Response<DataVO<Void>> resetPassword(ResetPasswordVO resetPasswordVO) {
-        Optional<SessionEntity> optionalSession = dao.findByIdSession(Session.sessionUser.getId());
+        Optional<SessionEntity> optionalSession = dao.findByIdSession(Session.sessionUser.getUserId());
         if (optionalSession.isEmpty()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage("Session user not found!")
@@ -177,18 +191,26 @@ public class AuthUserService extends AbstractDAO<AuthUserDAO> implements Generic
     public Response<DataVO<Void>> giveTeacherPermission(String username, String subjectName) {
         Optional<AuthUser> userOptional = dao.findByUserName(username);
 
-        if(userOptional.isEmpty()){
+        if (userOptional.isEmpty()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
-                    .friendlyMessage("Session user not found!")
+                    .friendlyMessage("Such user not found!")
                     .build()), false);
         }
-        Optional<Subject> subjectOptional = subjectDAO.findByName(subjectName);
+        Optional<Subject> subjectOptional = subjectService.findByName(subjectName);
         if (subjectOptional.isEmpty()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage("Subject not found!")
                     .build()), false);
         }
-        dao.giveTeacherRole(username,subjectName);
-        return new Response<>(new DataVO<>(null, true));
+        try {
+            dao.giveTeacherRole(username, subjectName);
+            return new Response<>(new DataVO<>(null, true));
+        } catch (Exception e) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage(e.getMessage())
+                    .developerMessage(e.getCause().getLocalizedMessage())
+                    .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                    .build()), false);
+        }
     }
 }

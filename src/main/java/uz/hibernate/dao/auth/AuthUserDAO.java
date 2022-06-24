@@ -8,7 +8,6 @@ import uz.hibernate.config.HibernateUtils;
 import uz.hibernate.dao.GenericDAO;
 import uz.hibernate.domains.SessionEntity;
 import uz.hibernate.domains.auth.AuthUser;
-import uz.hibernate.exceptions.CustomSQLException;
 import uz.hibernate.vo.auth.ResetPasswordVO;
 import uz.jl.BaseUtils;
 
@@ -29,7 +28,9 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
 
     public Optional<AuthUser> findByUserName(String username) {
         Session session = getSession();
-        session.beginTransaction();
+        if (!session.getTransaction().isActive()) {
+            session.beginTransaction();
+        }
         Query<AuthUser> query = session
                 .createQuery("select t from AuthUser t where lower(t.username) = lower(:username) ",
                         AuthUser.class);
@@ -47,8 +48,10 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
     }
 
     public Optional<SessionEntity> findByIdSession(Long id) {
-        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-        session.beginTransaction();
+        Session session = getSession();
+        if (!session.getTransaction().isActive()) {
+            session.beginTransaction();
+        }
         Query<SessionEntity> query = session
                 .createQuery("select t from SessionEntity t where (t.id) = (:id) ",
                         SessionEntity.class);
@@ -58,28 +61,24 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
         return resultOrNull;
     }
 
-    public void deleteByIdSession(Long id) throws CustomSQLException {
+    public void deleteByIdSession(Long id) throws Exception {
         Session session = HibernateUtils.getSessionFactory().getCurrentSession();
         session.beginTransaction();
-        try {
-            CallableStatement callableStatement = session.doReturningWork(connection -> {
-                CallableStatement function = connection.prepareCall(
-                        "{ ? = call sessionentity_delete(?)}"
-                );
-                function.registerOutParameter(1, Types.BIGINT);
-                function.setLong(2, id);
-                function.execute();
-                return function;
-            });
-        } finally {
-            session.getTransaction().commit();
-            session.close();
-        }
+        CallableStatement callableStatement = session.doReturningWork(connection -> {
+            CallableStatement function = connection.prepareCall(
+                    "{ ? = call sessionentity_delete(?)}"
+            );
+            function.registerOutParameter(1, Types.BIGINT);
+            function.setLong(2, id);
+            function.execute();
+            return function;
+        });
+        session.getTransaction().commit();
     }
 
     public void resetPassword(ResetPasswordVO resetPasswordVO, Long id) {
         Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-
+        session.beginTransaction();
         try {
             CallableStatement callableStatement = session.doReturningWork(connection -> {
                 CallableStatement function = connection.prepareCall(
@@ -93,11 +92,10 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
             });
         } finally {
             session.getTransaction().commit();
-            session.close();
         }
     }
 
-    public void giveTeacherRole(String username, String subjectName) {
+    public void giveTeacherRole(String username, String subjectName) throws Exception {
         Session session = HibernateUtils.getSessionFactory().getCurrentSession();
         session.beginTransaction();
         try {
@@ -113,7 +111,6 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
             });
         } finally {
             session.getTransaction().commit();
-            session.close();
         }
     }
 }

@@ -2,6 +2,8 @@ package uz.hibernate.vo;
 
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 public class DataVO<T> {
     private T body;
@@ -18,6 +20,7 @@ public class DataVO<T> {
         this.errorDTO = errorDTO;
         this.success = false;
     }
+
     public DataVO(T body) {
         this.body = body;
         this.success = true;

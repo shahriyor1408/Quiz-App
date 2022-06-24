@@ -4,8 +4,11 @@ import lombok.NonNull;
 import uz.hibernate.config.ApplicationContextHolder;
 import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.quiz.AnswerDAO;
+import uz.hibernate.dao.quiz.QuestionDAO;
 import uz.hibernate.domains.Answer;
+import uz.hibernate.domains.Question;
 import uz.hibernate.utils.BaseUtil;
+import uz.hibernate.vo.AppErrorVO;
 import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.http.Response;
 import uz.hibernate.vo.quiz.AnswerCreateVO;
@@ -13,6 +16,7 @@ import uz.hibernate.vo.quiz.AnswerUpdateVO;
 import uz.hibernate.vo.quiz.AnswerVO;
 
 import java.util.List;
+import java.util.Objects;
 
 public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUDService<
         AnswerVO,
@@ -39,11 +43,18 @@ public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUD
 
     @Override
     public Response<DataVO<Long>> create(@NonNull AnswerCreateVO vo) {
+        Question question = QuestionDAO.getInstance().findById(vo.getQuestionId());
+        if (Objects.isNull(question)) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Question not found!")
+                    .build()), false);
+        }
         Answer answer = Answer.childBuilder()
                 .variantA(vo.getVariantA())
                 .variantB(vo.getVariantB())
                 .variantC(vo.getVariantC())
                 .correctAnswer(vo.getCorrectAnswer())
+                .question(question)
                 .build();
 
         return new Response<>(new DataVO<>(dao.saveAnswer(answer).getId()));

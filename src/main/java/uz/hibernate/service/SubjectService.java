@@ -5,7 +5,6 @@ import uz.hibernate.config.ApplicationContextHolder;
 import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.subject.SubjectDAO;
 import uz.hibernate.domains.Subject;
-import uz.hibernate.exceptions.CustomSQLException;
 import uz.hibernate.utils.BaseUtil;
 import uz.hibernate.vo.AppErrorVO;
 import uz.hibernate.vo.DataVO;
@@ -44,7 +43,7 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage("This subject is already added!")
                     .timestamp(Timestamp.valueOf(LocalDateTime.now()))
-                    .build()),false);
+                    .build()), false);
         }
         Subject subject = Subject
                 .childBuilder()
@@ -69,7 +68,7 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage(e.getMessage())
                     .developerMessage(e.getCause().getLocalizedMessage())
-                    .build()),false);
+                    .build()), false);
         }
     }
 
@@ -95,7 +94,15 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
         return instance;
     }
 
-    public Optional subjectShowList() {
+    public Optional<List<Subject>> subjectShowList() {
         return dao.subjectShowList();
+    }
+
+    public Optional<Subject> getByUserId(Long userId) {
+        return dao.findByUserId(userId);
+    }
+
+    public Optional<Subject> findByName(String subjectName) {
+        return dao.findByName(subjectName);
     }
 }

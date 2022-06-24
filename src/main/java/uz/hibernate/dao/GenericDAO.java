@@ -49,9 +49,12 @@ public class GenericDAO<T, ID> implements BaseDAO {
     }
 
     public List<T> findAll() {
-        return getSession()
-                .createQuery("from " + persistentClass.getSimpleName(), persistentClass)
+        Session session1 = getSession();
+        session1.beginTransaction();
+        List<T> resultList = session1.createQuery("from " + persistentClass.getSimpleName(), persistentClass)
                 .getResultList();
+        session1.getTransaction().commit();
+        return resultList;
     }
 
     protected Session getSession() {

@@ -28,8 +28,10 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
     }
 
     public Optional<Subject> findByName(String in_name) {
-        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-        session.beginTransaction();
+        Session session = getSession();
+        if(!session.getTransaction().isActive()){
+            session.beginTransaction();
+        }
         Query<Subject> query = session
                 .createQuery("select t from Subject t where lower(t.name) = lower(:in_name) ",
                         Subject.class);
@@ -43,32 +45,44 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
         String result;
         Session session = HibernateUtils.getSessionFactory().getCurrentSession();
         session.beginTransaction();
-
-        try {
-            CallableStatement callableStatement = session.doReturningWork(connection -> {
-                CallableStatement function = connection.prepareCall(
-                        "select subject_update(?,?,?)"
-                );
-                function.setString(1, current_name);
-                function.setString(2, new_name);
-                function.setString(3, String.valueOf(updater));
-                function.execute();
-                return function;
-            });
-            result = callableStatement.getString(1);
-            return Optional.of(result);
-        } finally {
-            session.getTransaction().commit();
-            session.close();
-        }
+        CallableStatement callableStatement = session.doReturningWork(connection -> {
+            CallableStatement function = connection.prepareCall(
+                    "select subject_update(?,?,?)"
+            );
+            function.setString(1, current_name);
+            function.setString(2, new_name);
+            function.setString(3, String.valueOf(updater));
+            function.execute();
+            return function;
+        });
+        result = callableStatement.getString(1);
+        Optional<String> optional = Optional.of(result);
+        session.getTransaction().commit();
+        return optional;
     }
 
-    public Optional subjectShowList() {
-        Session currentSession = HibernateUtils.getSessionFactory().getCurrentSession();
-        currentSession.beginTransaction();
-        List<Subject> subjects = currentSession.createQuery("FROM Subject", Subject.class).getResultList();
+    public Optional<List<Subject>> subjectShowList() {
+        Session currentSession = getSession();
+        if(!currentSession.getTransaction().isActive()){
+            currentSession.beginTransaction();
+        }
+        List<Subject> subjects = currentSession.createQuery("from Subject", Subject.class).getResultList();
         Optional<List<Subject>> subjectList = Optional.of(subjects);
         currentSession.getTransaction().commit();
         return subjectList;
+    }
+
+    public Optional<Subject> findByUserId(Long userId) {
+        Session session = getSession();
+        if(!session.getTransaction().isActive()){
+            session.beginTransaction();
+        }
+        Query<Subject> query = session
+                .createQuery("select t from Subject t where (t.authUser.id) = (:userId) ",
+                        Subject.class);
+        query.setParameter("userId", userId);
+        Optional<Subject> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
+        session.getTransaction().commit();
+        return resultOrNull;
     }
 }

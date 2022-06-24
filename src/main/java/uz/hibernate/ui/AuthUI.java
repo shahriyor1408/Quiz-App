@@ -16,6 +16,7 @@ import uz.hibernate.vo.auth.ResetPasswordVO;
 import uz.hibernate.vo.http.Response;
 import uz.hibernate.vo.quiz.AnswerCreateVO;
 import uz.hibernate.vo.quiz.QuestionCreateVO;
+import uz.hibernate.vo.quiz.QuestionUpdateVO;
 import uz.hibernate.vo.subject.SubjectCreateVO;
 import uz.hibernate.vo.subject.SubjectUpdateVO;
 import uz.jl.BaseUtils;
@@ -142,11 +143,7 @@ public class AuthUI {
     }
 
     private void showAllUsers() {
-        /***
-         * ME
-         */
-
-
+        print_response(serviceUser.getAll());
     }
 
     private void settings() {
@@ -223,21 +220,48 @@ public class AuthUI {
     private void subjectCreate() {
         SubjectCreateVO vo = SubjectCreateVO.builder()
                 .name(BaseUtils.readText("Create name: "))
-                .createdBy(Session.sessionUser.getId())
+                .createdBy(Session.sessionUser.getUserId())
                 .build();
         print_response(serviceSubject.create(vo));
     }
 
     private void deleteQuiz() {
         /***
-         * Jahongir aka
+         * Javohir
          */
+        String questionId = BaseUtils.readText("Enter current question id : ");
+        BaseUtils.println("***************** Deleting in process *************** ");
+        print_response(questionService.delete(Long.valueOf(questionId)));
     }
 
     private void updateQuiz() {
         /***
-         * Jahongir aka
+         * Javohir
          */
+        String currentDescription = BaseUtils.readText("Enter current question description : ");
+        String newDescription = BaseUtils.readText("Enter new question description : ");
+        BaseUtils.println("Choose question difficulty : ");
+        BaseUtils.println("1.EASY");
+        BaseUtils.println("2.MEDIUM");
+        BaseUtils.println("3.HARD");
+
+        BaseUtils.println("********* Updating process ********** ");
+
+        String type = BaseUtils.readText("?:");
+
+        switch (type) {
+            case "1" -> type = "EASY";
+            case "2" -> type = "MEDIUM";
+            case "3" -> type = "HARD";
+        }
+
+        QuestionUpdateVO vo = QuestionUpdateVO.childBuilder()
+                .currentText(currentDescription)
+                .text(newDescription)
+                .type(QuestionType.valueOf(type))
+                .build();
+
+        print_response(questionService.update(vo));
     }
 
     private void quizListShow() {
@@ -259,35 +283,30 @@ public class AuthUI {
             case "2" -> type = "MEDIUM";
             case "3" -> type = "HARD";
         }
-
         String variantA = BaseUtils.readText("Enter variant A : ");
         String variantB = BaseUtils.readText("Enter variant B : ");
         String variantC = BaseUtils.readText("Enter variant C : ");
-
         String correctAnswer = BaseUtils.readText("Enter correct answer for example \"A\" : ");
-
         switch (correctAnswer) {
-
             case "A" -> correctAnswer = variantA;
             case "B" -> correctAnswer = variantB;
             case "C" -> correctAnswer = variantC;
-            default -> {
-                correctAnswer = variantA;
-            }
-
+            default -> correctAnswer = variantA;
         }
         QuestionCreateVO vo = QuestionCreateVO.builder()
                 .text(testDescription)
                 .type(QuestionType.valueOf(type))
                 .build();
+        Response<DataVO<Long>> response = questionService.create(vo);
+        print_response(response);
 
         AnswerCreateVO vo1 = AnswerCreateVO.builder()
                 .variantA(variantA)
                 .variantB(variantB)
                 .variantC(variantC)
                 .correctAnswer(correctAnswer)
+                .questionId(response.getBody().getBody())
                 .build();
-        print_response(questionService.create(vo));
         print_response(answerService.create(vo1));
     }
 
@@ -304,11 +323,11 @@ public class AuthUI {
     }
 
     private void subjectShowList() {
-        Optional subjects = serviceSubject.subjectShowList();
-        List<Subject> subjectList = (List<Subject>) subjects.get();
-        if (subjectList.isEmpty()) {
+        Optional<List<Subject>> subjects = serviceSubject.subjectShowList();
+        if (subjects.isEmpty() || subjects.get().isEmpty()) {
             BaseUtils.println("Subject not found", Colors.GREEN);
         } else {
+            List<Subject> subjectList = subjects.get();
             subjectList.forEach(subject -> BaseUtils.println(subject, Colors.GREEN));
         }
     }
