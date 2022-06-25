@@ -47,28 +47,7 @@ public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUD
 
     @Override
     public Response<DataVO<Long>> create(@NonNull AnswerCreateVO vo) {
-        Question question = QuestionDAO.getInstance().findById(vo.getQuestionId());
-        if (Objects.isNull(question)) {
-            return new Response<>(new DataVO<>(AppErrorVO.builder()
-                    .friendlyMessage("Question not found!")
-                    .build()), false);
-        }
-
-        if (vo.getVariantA().equalsIgnoreCase(vo.getVariantB().trim()) || vo.getVariantA().equalsIgnoreCase(vo.getVariantC().trim()) || vo.getVariantB().equalsIgnoreCase(vo.getVariantC().trim())) {
-            return new Response<>(new DataVO<>(AppErrorVO.builder()
-                    .friendlyMessage("Duplicate not allowed!")
-                    .build()), false);
-        }
-
-        Answer answer = Answer.childBuilder()
-                .variantA(vo.getVariantA())
-                .variantB(vo.getVariantB())
-                .variantC(vo.getVariantC())
-                .correctAnswer(vo.getCorrectAnswer())
-                .question(question)
-                .build();
-
-        return new Response<>(new DataVO<>(dao.saveAnswer(answer).getId()));
+        return null;
     }
 
     @Override
@@ -105,5 +84,21 @@ public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUD
     @Override
     public Response<DataVO<List<AnswerVO>>> getAll() {
         return null;
+    }
+
+    public static Response<DataVO<Answer>> getEntity(AnswerCreateVO vo) {
+        if (vo.getVariantA().equalsIgnoreCase(vo.getVariantB().trim()) || vo.getVariantA().equalsIgnoreCase(vo.getVariantC().trim()) || vo.getVariantB().equalsIgnoreCase(vo.getVariantC().trim())) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Duplicate not allowed!")
+                    .build()), false);
+        }
+
+        Answer answer = Answer.childBuilder()
+                .variantA(vo.getVariantA())
+                .variantB(vo.getVariantB())
+                .variantC(vo.getVariantC())
+                .correctAnswer(vo.getCorrectAnswer())
+                .build();
+        return new Response<>(new DataVO<>(answer));
     }
 }

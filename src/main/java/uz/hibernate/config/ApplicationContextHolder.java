@@ -1,6 +1,7 @@
 package uz.hibernate.config;
 
 import uz.hibernate.dao.SolveTestDAO;
+import uz.hibernate.dao.TestHistoryDAO;
 import uz.hibernate.dao.auth.AuthUserDAO;
 import uz.hibernate.dao.quiz.AnswerDAO;
 import uz.hibernate.dao.quiz.QuestionDAO;
@@ -24,6 +25,8 @@ public class ApplicationContextHolder {
             case "AnswerService" -> (T) AnswerService.getInstance();
             case "SolveTestService" -> (T) SolveTestService.getInstance();
             case "SolveTestDAO" -> (T) SolveTestDAO.getInstance();
+            case "TestHistoryDAO" -> (T) TestHistoryDAO.getInstance();
+            case "TestHistoryService" -> (T) TestHistoryService.getInstance();
             default -> throw new RuntimeException("Bean Not Found");
         };
     }

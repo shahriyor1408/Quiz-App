@@ -3,6 +3,7 @@ package uz.hibernate.vo.testHistory;
 import lombok.*;
 import uz.hibernate.vo.GenericVO;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @Data
@@ -12,13 +13,13 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TestHistoryVO extends GenericVO {
     private Integer quizNumber;
-    private LocalDateTime startedAt;
-    private LocalDateTime finishedAt;
+    private Timestamp startedAt;
+    private Timestamp finishedAt;
     private Integer correctAnswers;
     private String subjectName;
 
     @Builder(builderMethodName = "childBuilder")
-    public TestHistoryVO(long id, Integer quizNumber, LocalDateTime startedAt, LocalDateTime finishedAt, Integer correctAnswers, String subjectName) {
+    public TestHistoryVO(long id, Integer quizNumber, Timestamp startedAt, Timestamp finishedAt, Integer correctAnswers, String subjectName) {
         super(id);
         this.quizNumber = quizNumber;
         this.startedAt = startedAt;

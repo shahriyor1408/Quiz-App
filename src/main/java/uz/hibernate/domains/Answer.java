@@ -21,19 +21,14 @@ public class Answer extends Auditable {
     private String variantB;
     @Column(nullable = false)
     private String variantC;
-
-    @OneToOne(fetch = FetchType.EAGER)
-    @OrderColumn
-    private Question question;
     private String correctAnswer;
 
     @Builder(builderMethodName = "childBuilder")
-    public Answer(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String variantA, String variantB, String variantC, String correctAnswer, Question question) {
+    public Answer(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, String variantA, String variantB, String variantC, String correctAnswer) {
         super(id, createdAt, createdBy, updatedAt, updatedBy, deleted);
         this.variantA = variantA;
         this.variantB = variantB;
         this.variantC = variantC;
         this.correctAnswer = correctAnswer;
-        this.question = question;
     }
 }

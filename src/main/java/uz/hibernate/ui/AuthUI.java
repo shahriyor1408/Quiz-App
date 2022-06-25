@@ -34,6 +34,7 @@ public class AuthUI {
     static AnswerService answerService = ApplicationContextHolder.getBean(AnswerService.class);
     static SubjectService serviceSubject = ApplicationContextHolder.getBean(SubjectService.class);
     static SolveTestService solveTestService = ApplicationContextHolder.getBean(SolveTestService.class);
+    static TestHistoryService testHistoryService = ApplicationContextHolder.getBean(TestHistoryService.class);
     static AuthUI authUI = new AuthUI();
 
     public static void main(String[] args) {
@@ -331,23 +332,27 @@ public class AuthUI {
                 .text(testDescription)
                 .type(QuestionType.valueOf(type))
                 .build();
-        Response<DataVO<Long>> response = questionService.create(vo);
-        print_response(response);
 
         AnswerCreateVO vo1 = AnswerCreateVO.builder()
                 .variantA(variantA)
                 .variantB(variantB)
                 .variantC(variantC)
                 .correctAnswer(correctAnswer)
-                .questionId(response.getBody().getBody())
                 .build();
-        print_response(answerService.create(vo1));
+        Response<DataVO<Long>> response = questionService.createQuestion(vo, vo1);
+        print_response(response);
     }
 
     private void showHistory() {
-        /***
-         * Mirfayz
-         */
+        if (Session.sessionUser.getRole().equals(AuthRole.ADMIN)) {
+            BaseUtils.readText(" ********* Subject list **********");
+            subjectShowList();
+            String subjectName = BaseUtils.readText("Enter subject name : ");
+
+            print_response(testHistoryService.getAll(subjectName));
+        } else {
+            print_response(testHistoryService.getAll());
+        }
     }
 
     private void solveTest() {

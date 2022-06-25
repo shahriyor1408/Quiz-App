@@ -4,6 +4,7 @@ import lombok.NonNull;
 import uz.hibernate.config.ApplicationContextHolder;
 import uz.hibernate.dao.AbstractDAO;
 import uz.hibernate.dao.quiz.QuestionDAO;
+import uz.hibernate.domains.Answer;
 import uz.hibernate.domains.Question;
 import uz.hibernate.domains.Subject;
 import uz.hibernate.utils.BaseUtil;
@@ -11,6 +12,7 @@ import uz.hibernate.vo.AppErrorVO;
 import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.Session;
 import uz.hibernate.vo.http.Response;
+import uz.hibernate.vo.quiz.AnswerCreateVO;
 import uz.hibernate.vo.quiz.QuestionCreateVO;
 import uz.hibernate.vo.quiz.QuestionUpdateVO;
 import uz.hibernate.vo.quiz.QuestionVO;
@@ -49,6 +51,10 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
 
     @Override
     public Response<DataVO<Long>> create(@NonNull QuestionCreateVO vo) {
+        return null;
+    }
+
+    public Response<DataVO<Long>> createQuestion(@NonNull QuestionCreateVO vo, AnswerCreateVO vo1) {
         Optional<Question> questionOptional;
         try {
             questionOptional = dao.findByText(vo.getText());
@@ -72,12 +78,17 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
                     .timestamp(Timestamp.valueOf(LocalDateTime.now()))
                     .build()), false);
         }
+
+        Response<DataVO<Answer>> response = AnswerService.getEntity(vo1);
+        Answer answer = response.getBody().getBody();
+
         System.out.println(byUserId.get().getAuthUser().getSubject());
         Question question = Question.childBuilder()
                 .text(vo.getText())
                 .type(vo.getType())
                 .subject(byUserId.get().getAuthUser().getSubject())
                 .createdBy(Session.sessionUser.getUserId())
+                .answer(answer)
                 .build();
         Question save = dao.save(question);
         return new Response<>(new DataVO<>(save.getId()));
