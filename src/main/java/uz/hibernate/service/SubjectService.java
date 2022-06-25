@@ -40,7 +40,7 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
     @Override
     public Response<DataVO<Long>> create(@NonNull SubjectCreateVO vo) {
         Optional<Subject> optionalSubject = dao.findByName(vo.getName());
-        if (optionalSubject.isPresent()) {
+        if (optionalSubject.isPresent() && !optionalSubject.get().isDeleted()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage("This subject is already added!")
                     .timestamp(Timestamp.valueOf(LocalDateTime.now()))
@@ -57,7 +57,7 @@ public class SubjectService extends AbstractDAO<SubjectDAO> implements GenericCR
     @Override
     public Response<DataVO<Void>> update(@NonNull SubjectUpdateVO vo) {
         Optional<Subject> optionalAuthUser = dao.findByName(vo.getCurrent_name());
-        if (optionalAuthUser.isEmpty()) {
+        if (optionalAuthUser.isEmpty() || optionalAuthUser.get().isDeleted()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage("Such subject not found")
                     .build()), false);

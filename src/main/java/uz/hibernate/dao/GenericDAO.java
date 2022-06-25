@@ -33,9 +33,12 @@ public class GenericDAO<T, ID> implements BaseDAO {
 
     public T save(T entity) {
         Session currentSession = getSession();
-        session.beginTransaction();
+        if (!currentSession.getTransaction().isActive()) {
+            currentSession.beginTransaction();
+        }
         currentSession.persist(entity);
         currentSession.getTransaction().commit();
+        currentSession.close();
         return entity;
     }
 
@@ -53,6 +56,7 @@ public class GenericDAO<T, ID> implements BaseDAO {
             return function;
         });
         session.getTransaction().commit();
+        session.close();
     }
 
     public void update(T entity) {
@@ -60,12 +64,11 @@ public class GenericDAO<T, ID> implements BaseDAO {
     }
 
     public T findById(ID id) {
-        Session session1 = getSession();
-        if (!session1.getTransaction().isActive()) {
-            session1.beginTransaction();
-        }
-        T t = session1.get(persistentClass, id);
-        session1.getTransaction().commit();
+        Session currentSession = getSession();
+        currentSession.beginTransaction();
+        T t = currentSession.get(persistentClass, id);
+        currentSession.getTransaction().commit();
+        currentSession.close();
         return t;
     }
 
@@ -77,6 +80,7 @@ public class GenericDAO<T, ID> implements BaseDAO {
         List<T> resultList = session1.createQuery("from " + persistentClass.getSimpleName(), persistentClass)
                 .getResultList();
         session1.getTransaction().commit();
+        session.close();
         return resultList;
     }
 

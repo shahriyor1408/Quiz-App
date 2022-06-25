@@ -33,6 +33,7 @@ public class AuthUI {
     static QuestionService questionService = ApplicationContextHolder.getBean(QuestionService.class);
     static AnswerService answerService = ApplicationContextHolder.getBean(AnswerService.class);
     static SubjectService serviceSubject = ApplicationContextHolder.getBean(SubjectService.class);
+    static SolveTestService solveTestService = ApplicationContextHolder.getBean(SolveTestService.class);
     static AuthUI authUI = new AuthUI();
 
     public static void main(String[] args) {
@@ -279,17 +280,18 @@ public class AuthUI {
         BaseUtils.println("********* Updating process ********** ");
 
         String type = BaseUtils.readText("?:");
+        QuestionType questionType = null;
 
         switch (type) {
-            case "1" -> type = "EASY";
-            case "2" -> type = "MEDIUM";
-            case "3" -> type = "HARD";
+            case "1" -> questionType = QuestionType.EASY;
+            case "2" -> questionType = QuestionType.MEDIUM;
+            case "3" -> questionType = QuestionType.HARD;
         }
 
         QuestionUpdateVO vo = QuestionUpdateVO.childBuilder()
                 .currentText(currentDescription)
                 .text(newDescription)
-                .type(QuestionType.valueOf(type))
+                .type(questionType)
                 .build();
 
         print_response(questionService.update(vo));
@@ -324,13 +326,13 @@ public class AuthUI {
             case "A" -> correctAnswer = variantA;
             case "B" -> correctAnswer = variantB;
             case "C" -> correctAnswer = variantC;
-            default -> correctAnswer = variantA;
         }
         QuestionCreateVO vo = QuestionCreateVO.builder()
                 .text(testDescription)
                 .type(QuestionType.valueOf(type))
                 .build();
         Response<DataVO<Long>> response = questionService.create(vo);
+        System.out.println(response);
         print_response(response);
 
         AnswerCreateVO vo1 = AnswerCreateVO.builder()
@@ -357,9 +359,16 @@ public class AuthUI {
         subjectShowList();
         String subjectId = BaseUtils.readText("Enter subject id: ");
 
-        print_response(SubjectService.getInstance().get(Long.valueOf(subjectId)));
-        BaseUtils.println("Subject has successfully found!", Colors.PURPLE);
-        BaseUtils.println("Choose difficulty level: ");
+
+        if (SubjectService.getInstance().get(Long.valueOf(subjectId)).isOk()) {
+            BaseUtils.println("Subject has successfully found!", Colors.PURPLE);
+            BaseUtils.println("Choose difficulty level: ");
+        } else {
+            print_response(SubjectService.getInstance().get(Long.valueOf(subjectId)));
+            return;
+        }
+
+
         BaseUtils.println(QuestionType.EASY.name() + " -> 1");
         BaseUtils.println(QuestionType.MEDIUM.name() + " -> 2");
         BaseUtils.println(QuestionType.HARD.name() + " -> 3");
@@ -368,11 +377,16 @@ public class AuthUI {
         String quizNumber = BaseUtils.readText("Enter amount: ");
 
         switch (quizType) {
+
             case "1" -> quizType = QuestionType.EASY.name();
             case "2" -> quizType = QuestionType.MEDIUM.name();
             case "3" -> quizType = QuestionType.HARD.name();
-            default -> quizType = QuestionType.EASY.name();
+            default -> {
+                quizType = QuestionType.EASY.name();
+            }
+
         }
+        print_response(solveTestService.solveTest(subjectId, quizType, quizNumber));
     }
 
     private void subjectShowList() {

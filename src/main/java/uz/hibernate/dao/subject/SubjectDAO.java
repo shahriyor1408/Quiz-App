@@ -35,24 +35,21 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
 
     public Optional<Subject> findByName(String in_name) {
         Session session = getSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        session.beginTransaction();
         Query<Subject> query = session
                 .createQuery("select t from Subject t where lower(t.name) = lower(:in_name) ",
                         Subject.class);
         query.setParameter("in_name", in_name);
         Optional<Subject> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
+        session.close();
         return resultOrNull;
     }
 
     public void update(String current_name, String new_name, Long updater) throws SQLException {
         String result;
-        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        Session session = getSession();
+        session.beginTransaction();
         CallableStatement callableStatement = session.doReturningWork(connection -> {
             CallableStatement function = connection.prepareCall(
                     "{? = call subject_update(?,?,?)}"
@@ -67,6 +64,7 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
         result = callableStatement.getString(1);
         Optional<String> optional = Optional.of(result);
         session.getTransaction().commit();
+        session.close();
     }
 
     public Optional<List<Subject>> subjectShowList() {
@@ -74,9 +72,10 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
         if (!currentSession.getTransaction().isActive()) {
             currentSession.beginTransaction();
         }
-        List<Subject> subjects = currentSession.createQuery("from Subject", Subject.class).getResultList();
+        List<Subject> subjects = currentSession.createQuery("from Subject where deleted = 0", Subject.class).getResultList();
         Optional<List<Subject>> subjectList = Optional.of(subjects);
         currentSession.getTransaction().commit();
+        currentSession.close();
         return subjectList;
     }
 
@@ -91,6 +90,7 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
         query.setParameter("userId", userId);
         Optional<Subject> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
+        session.close();
         return resultOrNull;
     }
 
@@ -105,7 +105,7 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
         query.setParameter("id", id);
         Optional<Subject> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
-
+        session.close();
         return resultOrNull;
     }
 

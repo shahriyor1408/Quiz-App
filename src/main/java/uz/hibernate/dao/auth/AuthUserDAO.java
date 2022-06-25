@@ -29,15 +29,14 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
 
     public Optional<AuthUser> findByUserName(String username) {
         Session session = getSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        session.beginTransaction();
         Query<AuthUser> query = session
                 .createQuery("select t from AuthUser t where (t.username) = (:username) ",
                         AuthUser.class);
         query.setParameter("username", username);
         Optional<AuthUser> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
+        session.close();
         return resultOrNull;
     }
 
@@ -46,19 +45,19 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
         currentSession.beginTransaction();
         currentSession.persist(sessionEntity);
         currentSession.getTransaction().commit();
+        currentSession.close();
     }
 
     public Optional<SessionEntity> findByIdSession(Long id) {
         Session session = getSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        session.beginTransaction();
         Query<SessionEntity> query = session
                 .createQuery("select t from SessionEntity t where (t.id) = (:id) ",
                         SessionEntity.class);
         query.setParameter("id", id);
         Optional<SessionEntity> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
+        session.close();
         return resultOrNull;
     }
 
@@ -75,13 +74,12 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
             return function;
         });
         session.getTransaction().commit();
+        session.close();
     }
 
     public void resetPassword(ResetPasswordVO resetPasswordVO, Long id) {
-        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        Session session = getSession();
+        session.beginTransaction();
         try {
             CallableStatement callableStatement = session.doReturningWork(connection -> {
                 CallableStatement function = connection.prepareCall(
@@ -95,6 +93,7 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
             });
         } finally {
             session.getTransaction().commit();
+            session.close();
         }
     }
 
@@ -114,14 +113,13 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
             });
         } finally {
             session.getTransaction().commit();
+            session.close();
         }
     }
 
     public void updateUser(AuthUserUpdateVO vo) throws Exception {
         Session session = getSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        session.beginTransaction();
         try {
             CallableStatement callableStatement = session.doReturningWork(connection -> {
                 CallableStatement function = connection.prepareCall(
@@ -134,6 +132,7 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
             });
         } finally {
             session.getTransaction().commit();
+            session.close();
         }
     }
 }

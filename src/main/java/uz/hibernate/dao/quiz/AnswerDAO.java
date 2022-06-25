@@ -30,15 +30,15 @@ public class AnswerDAO extends GenericDAO<Question, Long> {
         currentSession.beginTransaction();
         currentSession.persist(answer);
         currentSession.getTransaction().commit();
+        currentSession.close();
         return answer;
     }
 
     public Optional<String> updateAnswer(Answer answer) {
 
-        Session currentSession = HibernateUtils.getSessionFactory().getCurrentSession();
+        Session currentSession = getSession();
         currentSession.beginTransaction();
         String answerToJson = BaseUtils.gson.toJson(answer);
-
         try {
             currentSession.doReturningWork(connection -> {
                 CallableStatement function = connection.prepareCall(
@@ -55,7 +55,7 @@ public class AnswerDAO extends GenericDAO<Question, Long> {
         return Optional.empty();
     }
 
-    public Optional<Answer> findAnswerById(Long id){
+    public Optional<Answer> findAnswerById(Long id) {
         Session session = getSession();
         session.beginTransaction();
         Query<Answer> query = session
@@ -64,6 +64,7 @@ public class AnswerDAO extends GenericDAO<Question, Long> {
         query.setParameter("id", id);
         Optional<Answer> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
+        session.close();
         return resultOrNull;
     }
 }

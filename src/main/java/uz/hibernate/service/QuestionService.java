@@ -53,6 +53,7 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
             questionOptional = dao.findByText(vo.getText());
             System.out.println(Session.sessionUser.getUserId());
             Optional<Subject> byUserId = subjectService.getByUserId(Session.sessionUser.getUserId());
+            System.out.println(byUserId.get());
             if (byUserId.isEmpty()) {
                 return new Response<>(new DataVO<>(AppErrorVO.builder()
                         .friendlyMessage("Subject not found!")
@@ -131,7 +132,7 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
     public Response<DataVO<List<QuestionVO>>> getAll() {
         List<Question> questions = dao.findAll();
 
-        if(Objects.isNull(questions)){
+        if (Objects.isNull(questions)) {
             BaseUtils.println("Question list is empty");
         }
         List<QuestionVO> questionVOList = new ArrayList<>();

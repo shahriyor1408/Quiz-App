@@ -19,6 +19,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@NamedQuery(name = "findAll", query = "SELECT a FROM AuthUser a WHERE a.deleted = false")
 public class AuthUser extends Auditable {
     @Column(unique = true, nullable = false)
     private String username;

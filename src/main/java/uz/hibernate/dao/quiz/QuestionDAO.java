@@ -27,20 +27,19 @@ public class QuestionDAO extends GenericDAO<Question, Long> {
 
     public Optional<Question> findByText(String in_text) throws Exception {
         Session session = getSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        session.beginTransaction();
         Query<Question> query = session
                 .createQuery("select t from Question t where (t.text) = (:in_text) ",
                         Question.class);
         query.setParameter("in_text", in_text);
         Optional<Question> resultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
+        session.close();
         return resultOrNull;
     }
 
     public void update(String textForFind, String text, QuestionType type) throws Exception {
-        Session currentSession = HibernateUtils.getSessionFactory().getCurrentSession();
+        Session currentSession = getSession();
         currentSession.beginTransaction();
         try {
             CallableStatement callableStatement = currentSession.doReturningWork(connection -> {
@@ -55,28 +54,28 @@ public class QuestionDAO extends GenericDAO<Question, Long> {
             });
         } finally {
             currentSession.getTransaction().commit();
+            currentSession.close();
         }
     }
 
     public Optional<Question> findByQuestionId(Long id) {
         Session session = getSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        session.beginTransaction();
         Query<Question> query = session
                 .createQuery("select t from Question t where t.id = :questionId and t.deleted = false",
                         Question.class);
         query.setParameter("questionId", id);
         Optional<Question> singleResultOrNull = Optional.ofNullable(query.getSingleResultOrNull());
         session.getTransaction().commit();
+        session.close();
         return singleResultOrNull;
     }
 
     public void delete(Long id) throws SQLException, ExecutionException {
-        Session session1 = HibernateUtils.getSessionFactory().getCurrentSession();
-        session1.beginTransaction();
+        Session session = getSession();
+        session.beginTransaction();
         try {
-            CallableStatement callableStatement = session1.doReturningWork(connection -> {
+            CallableStatement callableStatement = session.doReturningWork(connection -> {
                 CallableStatement function = connection.prepareCall(
                         "{? = call question_delete(?)}");
                 function.registerOutParameter(1, Types.VARCHAR);
@@ -86,7 +85,8 @@ public class QuestionDAO extends GenericDAO<Question, Long> {
             });
             callableStatement.getString(1);
         } finally {
-            session1.getTransaction().commit();
+            session.getTransaction().commit();
+            session.close();
         }
     }
 }

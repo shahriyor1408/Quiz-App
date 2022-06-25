@@ -21,15 +21,13 @@ public class Question extends Auditable {
     @Enumerated(EnumType.STRING)
     private QuestionType type;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "question_id")
-    @OrderColumn(name = "type")
-    List<Answer> answerList = new ArrayList<>();
+    Answer answer = new Answer();
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "subject_id")
     private Subject subject;
-
     private final Integer answer_count = 3;
 
     @Builder(builderMethodName = "childBuilder")

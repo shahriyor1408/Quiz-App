@@ -19,13 +19,15 @@ public class Subject extends Auditable {
     private String name;
 
     @OneToMany(mappedBy = "subject", fetch = FetchType.EAGER)
+    @Column(nullable = false)
     private List<Question> questionList = new ArrayList<>();
 
     @OneToMany(mappedBy = "subject", fetch = FetchType.EAGER)
+    @Column(nullable = false)
     private List<TestHistory> testHistoryList = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", referencedColumnName = "id",unique = true)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     private AuthUser authUser;
 
     @Builder(builderMethodName = "childBuilder")
@@ -49,7 +51,7 @@ public class Subject extends Auditable {
         return "Subject{" +
                 "name='" + name + '\'' +
                 ", number questions=" + size +
-                ", authUser=" + username +
+                ", teacher=" + username +
                 '}';
     }
 }

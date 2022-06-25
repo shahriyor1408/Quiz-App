@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,14 +15,15 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Answer extends Auditable {
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String variantA;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String variantB;
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String variantC;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER)
+    @OrderColumn
     private Question question;
     private String correctAnswer;
 
