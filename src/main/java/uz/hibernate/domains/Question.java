@@ -5,8 +5,6 @@ import lombok.*;
 import uz.hibernate.enums.QuestionType;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Getter
@@ -21,7 +19,7 @@ public class Question extends Auditable {
     @Enumerated(EnumType.STRING)
     private QuestionType type;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, optional = false)
     @JoinColumn(name = "question_id")
     Answer answer = new Answer();
 

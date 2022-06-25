@@ -18,7 +18,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class GenericDAO<T, ID> implements BaseDAO {
-
     protected SessionFactory sessionFactory = HibernateUtils.getSessionFactory();
     private Session session = getSession();
 
@@ -33,9 +32,7 @@ public class GenericDAO<T, ID> implements BaseDAO {
 
     public T save(T entity) {
         Session currentSession = getSession();
-        if (!currentSession.getTransaction().isActive()) {
-            currentSession.beginTransaction();
-        }
+        currentSession.beginTransaction();
         currentSession.persist(entity);
         currentSession.getTransaction().commit();
         currentSession.close();
@@ -44,7 +41,7 @@ public class GenericDAO<T, ID> implements BaseDAO {
 
     public void deleteById(ID id) throws SQLException {
         // TODO: 6/20/2022 create your custom exception here
-        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
+        Session session = getSession();
         session.beginTransaction();
         CallableStatement callableStatement = session.doReturningWork(connection -> {
             CallableStatement function = connection.prepareCall(
@@ -65,7 +62,9 @@ public class GenericDAO<T, ID> implements BaseDAO {
 
     public T findById(ID id) {
         Session currentSession = getSession();
-        currentSession.beginTransaction();
+        if (!currentSession.getTransaction().isActive()) {
+            currentSession.beginTransaction();
+        }
         T t = currentSession.get(persistentClass, id);
         currentSession.getTransaction().commit();
         currentSession.close();

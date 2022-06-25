@@ -16,7 +16,6 @@ import uz.hibernate.vo.quiz.QuestionUpdateVO;
 import uz.hibernate.vo.quiz.QuestionVO;
 import uz.jl.BaseUtils;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,40 +45,42 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
         return instance;
     }
 
+    static QuestionDAO dao1 = QuestionDAO.getInstance();
+
     @Override
     public Response<DataVO<Long>> create(@NonNull QuestionCreateVO vo) {
-        Optional<Question> questionOptional = null;
+        Optional<Question> questionOptional;
         try {
             questionOptional = dao.findByText(vo.getText());
-            System.out.println(Session.sessionUser.getUserId());
-            Optional<Subject> byUserId = subjectService.getByUserId(Session.sessionUser.getUserId());
-            System.out.println(byUserId.get());
-            if (byUserId.isEmpty()) {
-                return new Response<>(new DataVO<>(AppErrorVO.builder()
-                        .friendlyMessage("Subject not found!")
-                        .timestamp(Timestamp.valueOf(LocalDateTime.now()))
-                        .build()), false);
-            }
-            if (questionOptional.isPresent()) {
-                return new Response<>(new DataVO<>(AppErrorVO.builder()
-                        .friendlyMessage("Question already exist!")
-                        .timestamp(Timestamp.valueOf(LocalDateTime.now()))
-                        .build()), false);
-            }
-            Question question = Question.childBuilder()
-                    .text(vo.getText())
-                    .type(vo.getType())
-                    .subject(byUserId.get().getAuthUser().getSubject())
-                    .createdBy(Session.sessionUser.getUserId())
-                    .build();
-            return new Response<>(new DataVO<>(dao.save(question).getId()));
         } catch (Exception e) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
                     .friendlyMessage(e.getMessage())
-                    .developerMessage(e.getCause().getLocalizedMessage())
                     .timestamp(Timestamp.valueOf(LocalDateTime.now()))
                     .build()), false);
         }
+        System.out.println(Session.sessionUser.getUserId());
+        Optional<Subject> byUserId = subjectService.getByUserId(Session.sessionUser.getUserId());
+        if (byUserId.isEmpty()) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Subject not found!")
+                    .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                    .build()), false);
+        }
+        if (questionOptional.isPresent()) {
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Question already exist!")
+                    .timestamp(Timestamp.valueOf(LocalDateTime.now()))
+                    .build()), false);
+        }
+        System.out.println(byUserId.get().getAuthUser().getSubject());
+        Question question = Question.childBuilder()
+                .text(vo.getText())
+                .type(vo.getType())
+                .subject(byUserId.get().getAuthUser().getSubject())
+                .createdBy(Session.sessionUser.getUserId())
+                .build();
+        Question save = dao.save(question);
+        return new Response<>(new DataVO<>(save.getId()));
     }
 
     @Override
@@ -94,7 +95,6 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
                     .text(vo.getText())
                     .type(vo.getType())
                     .build();
-            QuestionDAO dao1 = new QuestionDAO();
             dao1.update(textForFind, question.getText(), question.getType());
             return new Response<>(new DataVO<>(null, true));
         } catch (Exception e) {
@@ -112,7 +112,6 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
                     .friendlyMessage("Question not found!")
                     .build()), false);
         }
-        QuestionDAO dao1 = new QuestionDAO();
         try {
             dao1.delete(id);
         } catch (Exception e) {

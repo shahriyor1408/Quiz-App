@@ -32,5 +32,4 @@ public class ApplicationContextHolder {
         String beanName = clazz.getSimpleName();
         return getBean(beanName);
     }
-
 }

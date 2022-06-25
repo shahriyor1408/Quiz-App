@@ -47,7 +47,6 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
     }
 
     public void update(String current_name, String new_name, Long updater) throws SQLException {
-        String result;
         Session session = getSession();
         session.beginTransaction();
         CallableStatement callableStatement = session.doReturningWork(connection -> {
@@ -61,18 +60,15 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
             function.execute();
             return function;
         });
-        result = callableStatement.getString(1);
-        Optional<String> optional = Optional.of(result);
+        callableStatement.getString(1);
         session.getTransaction().commit();
         session.close();
     }
 
     public Optional<List<Subject>> subjectShowList() {
         Session currentSession = getSession();
-        if (!currentSession.getTransaction().isActive()) {
-            currentSession.beginTransaction();
-        }
-        List<Subject> subjects = currentSession.createQuery("from Subject where deleted = 0", Subject.class).getResultList();
+        currentSession.beginTransaction();
+        List<Subject> subjects = currentSession.createQuery("select t from Subject t where t.deleted = false", Subject.class).getResultList();
         Optional<List<Subject>> subjectList = Optional.of(subjects);
         currentSession.getTransaction().commit();
         currentSession.close();
@@ -81,9 +77,7 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
 
     public Optional<Subject> findByUserId(Long userId) {
         Session session = getSession();
-        if (!session.getTransaction().isActive()) {
-            session.beginTransaction();
-        }
+        session.beginTransaction();
         Query<Subject> query = session
                 .createQuery("select t from Subject t where t.deleted = false and (t.authUser.id) = (:userId) ",
                         Subject.class);

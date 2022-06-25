@@ -301,7 +301,7 @@ public class AuthUI {
         /***
          * Jahongir aka
          */
-        BaseUtils.println("********** Question list  *************");
+        BaseUtils.println("********** Question list  *************", Colors.YELLOW);
         print_response(questionService.getAll());
     }
 
@@ -332,7 +332,6 @@ public class AuthUI {
                 .type(QuestionType.valueOf(type))
                 .build();
         Response<DataVO<Long>> response = questionService.create(vo);
-        System.out.println(response);
         print_response(response);
 
         AnswerCreateVO vo1 = AnswerCreateVO.builder()
@@ -355,7 +354,7 @@ public class AuthUI {
         /***
          * Team work (developing some ideas by Shohruh aka)
          */
-        BaseUtils.println("Choose subject: ");
+        BaseUtils.println("\n************************************************************************", Colors.YELLOW);
         subjectShowList();
         String subjectId = BaseUtils.readText("Enter subject id: ");
 
@@ -375,18 +374,15 @@ public class AuthUI {
         String quizType = BaseUtils.readText("Choose one option: ");
         BaseUtils.println("How many quiz do you want to solve ?");
         String quizNumber = BaseUtils.readText("Enter amount: ");
-
+        QuestionType questionType = null;
         switch (quizType) {
 
-            case "1" -> quizType = QuestionType.EASY.name();
-            case "2" -> quizType = QuestionType.MEDIUM.name();
-            case "3" -> quizType = QuestionType.HARD.name();
-            default -> {
-                quizType = QuestionType.EASY.name();
-            }
-
+            case "1" -> questionType = QuestionType.EASY;
+            case "2" -> questionType = QuestionType.MEDIUM;
+            case "3" -> questionType = QuestionType.HARD;
+            default -> questionType = QuestionType.EASY;
         }
-        print_response(solveTestService.solveTest(subjectId, quizType, quizNumber));
+        print_response(SolveTestService.solveTest(subjectId, questionType, quizNumber));
     }
 
     private void subjectShowList() {

@@ -3,6 +3,7 @@ package uz.hibernate.service;
 import uz.hibernate.dao.SolveTestDAO;
 import uz.hibernate.domains.Answer;
 import uz.hibernate.domains.Question;
+import uz.hibernate.enums.QuestionType;
 import uz.hibernate.vo.AppErrorVO;
 import uz.hibernate.vo.DataVO;
 import uz.hibernate.vo.http.Response;
@@ -22,7 +23,7 @@ public class SolveTestService {
     private SolveTestService() {
     }
 
-    public static Response<DataVO<Void>> solveTest(String subjectId, String quizType, String quizNumber) {
+    public static Response<DataVO<Void>> solveTest(String subjectId, QuestionType quizType, String quizNumber) {
         Map<Long, Map<Question, Answer>> questionAnswerMap = SolveTestDAO.solveTest(subjectId, quizType, quizNumber);
         if (questionAnswerMap.isEmpty()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()

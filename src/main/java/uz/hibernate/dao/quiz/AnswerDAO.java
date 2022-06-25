@@ -1,5 +1,8 @@
 package uz.hibernate.dao.quiz;
 
+import jakarta.persistence.Access;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import uz.hibernate.config.HibernateUtils;
@@ -13,6 +16,7 @@ import java.sql.Types;
 import java.util.Objects;
 import java.util.Optional;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnswerDAO extends GenericDAO<Question, Long> {
 
     private static AnswerDAO instance;
@@ -35,7 +39,6 @@ public class AnswerDAO extends GenericDAO<Question, Long> {
     }
 
     public Optional<String> updateAnswer(Answer answer) {
-
         Session currentSession = getSession();
         currentSession.beginTransaction();
         String answerToJson = BaseUtils.gson.toJson(answer);

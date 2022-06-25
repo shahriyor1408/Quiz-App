@@ -98,7 +98,7 @@ public class AuthUserDAO extends GenericDAO<AuthUser, Long> {
     }
 
     public void giveTeacherRole(String username, String subjectName) throws Exception {
-        Session session = HibernateUtils.getSessionFactory().getCurrentSession();
+        Session session = getSession();
         session.beginTransaction();
         try {
             CallableStatement callableStatement = session.doReturningWork(connection -> {

@@ -87,7 +87,7 @@ public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUD
                 .updatedAt(Timestamp.valueOf(LocalDateTime.now()))
                 .build();
 
-        AnswerDAO answerDAO = new AnswerDAO();
+        AnswerDAO answerDAO = AnswerDAO.getInstance();
         Optional<String> optionalS = answerDAO.updateAnswer(answer);
         return new Response<>(new DataVO<>(null, true));
     }

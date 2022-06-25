@@ -1,5 +1,7 @@
 package uz.hibernate.dao.quiz;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.hibernate.sql.exec.ExecutionException;
@@ -14,6 +16,7 @@ import java.sql.Types;
 import java.util.Objects;
 import java.util.Optional;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class QuestionDAO extends GenericDAO<Question, Long> {
 
     private static QuestionDAO instance;
