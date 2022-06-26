@@ -17,7 +17,7 @@ import java.util.Objects;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SolveTestDAO extends GenericDAO<AuthUser, Long> {
-    public static Map<Long, Map<Question, Answer>> solveTest(String subjectId, QuestionType quizType, String quizNumber) {
+    public static List<Question> solveTest(String subjectId, QuestionType quizType, String quizNumber) {
         Map<Long, Map<Question, Answer>> questionAnswerMap = new HashMap<>();
         Session currentSession = HibernateUtils.getSessionFactory().getCurrentSession();
         currentSession.beginTransaction();
@@ -27,21 +27,10 @@ public class SolveTestDAO extends GenericDAO<AuthUser, Long> {
         query.setMaxResults(Integer.parseInt(quizNumber));
         List<Question> resultList = query.getResultList();
 
-        long i = 1L;
-        Map<Question, Answer> questionAnswerMap1 = new HashMap<>();
-        for (Question question : resultList) {
-            Long id = question.getId();
-            Query<Answer> query1 = currentSession.createQuery("select t from Answer t where t.question.id = :id and t.deleted = false", Answer.class);
-            query1.setParameter("id", id);
-            Answer answer = query1.getSingleResult();
-            questionAnswerMap1.put(question, answer);
-            questionAnswerMap.put(i, questionAnswerMap1);
-            i++;
-        }
 
         currentSession.getTransaction().commit();
         currentSession.close();
-        return questionAnswerMap;
+        return resultList;
     }
 
     private static SolveTestDAO instance;

@@ -33,7 +33,6 @@ public class AuthUI {
     static QuestionService questionService = ApplicationContextHolder.getBean(QuestionService.class);
     static AnswerService answerService = ApplicationContextHolder.getBean(AnswerService.class);
     static SubjectService serviceSubject = ApplicationContextHolder.getBean(SubjectService.class);
-    static SolveTestService solveTestService = ApplicationContextHolder.getBean(SolveTestService.class);
     static TestHistoryService testHistoryService = ApplicationContextHolder.getBean(TestHistoryService.class);
     static AuthUI authUI = new AuthUI();
 
@@ -42,18 +41,22 @@ public class AuthUI {
             BaseUtils.println("Login    -> 1");
             BaseUtils.println("Register -> 2");
         } else {
+            BaseUtils.println("\nWelcome - " + Session.sessionUser.getUsername(), Colors.YELLOW);
             if (Session.sessionUser.getRole().equals(AuthRole.USER)) {
+                BaseUtils.println("********************* User Page *******************", Colors.YELLOW);
                 BaseUtils.println("Show subjects -> 3");
                 BaseUtils.println("Solve test    -> 4");
                 BaseUtils.println("Show history  -> 5");
                 BaseUtils.println("Settings      -> 6");
             } else if (Session.sessionUser.getRole().equals(AuthRole.TEACHER)) {
+                BaseUtils.println("********************* Teacher Page *******************", Colors.YELLOW);
                 BaseUtils.println("Create quiz    -> 7");
                 BaseUtils.println("Show quiz list -> 8");
                 BaseUtils.println("Update quiz    -> 9");
                 BaseUtils.println("Delete quiz    -> 10");
                 BaseUtils.println("Answer update  -> 11");
             } else if (Session.sessionUser.getRole().equals(AuthRole.ADMIN)) {
+                BaseUtils.println("********************* Admin Page *******************", Colors.YELLOW);
                 BaseUtils.println("Show subjects     -> 3");
                 BaseUtils.println("Solve test        -> 4");
                 BaseUtils.println("Show history      -> 5");
@@ -346,9 +349,11 @@ public class AuthUI {
     private void showHistory() {
         if (Session.sessionUser.getRole().equals(AuthRole.ADMIN)) {
             BaseUtils.readText(" ********* Subject list **********");
-            subjectShowList();
+            boolean b = subjectShowList();
+            if (!b) {
+                return;
+            }
             String subjectName = BaseUtils.readText("Enter subject name : ");
-
             print_response(testHistoryService.getAll(subjectName));
         } else {
             print_response(testHistoryService.getAll());
@@ -390,13 +395,15 @@ public class AuthUI {
         print_response(SolveTestService.solveTest(subjectId, questionType, quizNumber));
     }
 
-    private void subjectShowList() {
+    private boolean subjectShowList() {
         Optional<List<Subject>> subjects = serviceSubject.subjectShowList();
         if (subjects.isEmpty() || subjects.get().isEmpty()) {
             BaseUtils.println("Subject not found", Colors.GREEN);
+            return false;
         } else {
             List<Subject> subjectList = subjects.get();
             subjectList.forEach(subject -> BaseUtils.println(subject, Colors.GREEN));
+            return true;
         }
     }
 

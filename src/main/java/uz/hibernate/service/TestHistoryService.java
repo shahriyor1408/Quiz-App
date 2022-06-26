@@ -43,7 +43,13 @@ public class TestHistoryService extends AbstractDAO<TestHistoryDAO> implements G
 
     @Override
     public Response<DataVO<Long>> create(@NonNull TestHistoryCreateVO vo) {
-        return null;
+        TestHistory testHistory = TestHistory.childBuilder()
+                .startedAt(vo.getStartedAt())
+                .finishedAt(vo.getFinishedAt())
+                .correct_quiz_count(vo.getCorrectAnswers())
+                .quiz_count(vo.getQuizNumber())
+                .build();
+        return new Response<>(new DataVO<>(dao.save(testHistory).getId()));
     }
 
     @Override

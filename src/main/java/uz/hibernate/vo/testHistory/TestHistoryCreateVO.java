@@ -3,7 +3,7 @@ package uz.hibernate.vo.testHistory;
 import lombok.*;
 import uz.hibernate.vo.BaseVO;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Builder
 @Getter
@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TestHistoryCreateVO implements BaseVO {
     private Integer quizNumber;
-    private LocalDateTime startedAt;
-    private LocalDateTime finishedAt;
+    private Timestamp startedAt;
+    private Timestamp finishedAt;
     private Integer correctAnswers;
     private String subjectName;
 }

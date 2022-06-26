@@ -64,7 +64,6 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
                     .timestamp(Timestamp.valueOf(LocalDateTime.now()))
                     .build()), false);
         }
-        System.out.println(Session.sessionUser.getUserId());
         Optional<Subject> byUserId = subjectService.getByUserId(Session.sessionUser.getUserId());
         if (byUserId.isEmpty()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
@@ -82,7 +81,6 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
         Response<DataVO<Answer>> response = AnswerService.getEntity(vo1);
         Answer answer = response.getBody().getBody();
 
-        System.out.println(byUserId.get().getAuthUser().getSubject());
         Question question = Question.childBuilder()
                 .text(vo.getText())
                 .type(vo.getType())
