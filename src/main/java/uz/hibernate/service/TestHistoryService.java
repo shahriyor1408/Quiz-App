@@ -19,7 +19,6 @@ import uz.hibernate.vo.testHistory.TestHistoryVO;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class TestHistoryService extends AbstractDAO<TestHistoryDAO> implements GenericCRUDService<

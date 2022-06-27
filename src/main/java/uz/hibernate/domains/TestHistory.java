@@ -2,6 +2,7 @@ package uz.hibernate.domains;
 
 import jakarta.persistence.*;
 import lombok.*;
+import uz.hibernate.domains.auth.AuthUser;
 
 import java.sql.Timestamp;
 
@@ -27,13 +28,17 @@ public class TestHistory extends Auditable {
     @JoinColumn(name = "subject_id")
     private Subject subject;
 
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private AuthUser authUser;
+
     @Builder(builderMethodName = "childBuilder")
-    public TestHistory(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, Integer quiz_count, Timestamp startedAt, Timestamp finishedAt, Integer correct_quiz_count, Subject subject) {
+    public TestHistory(Long id, Timestamp createdAt, Long createdBy, Timestamp updatedAt, Long updatedBy, boolean deleted, Integer quiz_count, Timestamp startedAt, Timestamp finishedAt, Integer correct_quiz_count, Subject subject, AuthUser authUser) {
         super(id, createdAt, createdBy, updatedAt, updatedBy, deleted);
         this.quiz_count = quiz_count;
         this.startedAt = startedAt;
         this.finishedAt = finishedAt;
         this.correct_quiz_count = correct_quiz_count;
         this.subject = subject;
+        this.authUser = authUser;
     }
 }

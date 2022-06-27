@@ -72,8 +72,7 @@ public class SolveTestService {
                     .variantC(answer.getVariantC()).build();
 
             BaseUtils.println(BaseUtils.gson.toJson(build));
-
-            BaseUtils.println("Write answer: ", Colors.PURPLE);
+            BaseUtils.print("Write answer: ", Colors.PURPLE);
 
             givenAnswer = BaseUtils.readText();
             if (givenAnswer.equalsIgnoreCase(answer.getCorrectAnswer())) {
@@ -83,7 +82,6 @@ public class SolveTestService {
                 answersNumber++;
             }
             i++;
-
         }
 
         if (endTime.isBefore(LocalDateTime.now())) {
@@ -104,7 +102,7 @@ public class SolveTestService {
                 .finishedAt(Timestamp.valueOf(LocalDateTime.now()))
                 .build();
         TestHistoryCreateVO build = TestHistoryCreateVO.builder()
-                .finishedAt(testHistoryVO.getStartedAt())
+                .startedAt(testHistoryVO.getStartedAt())
                 .finishedAt(testHistoryVO.getFinishedAt())
                 .subjectName(testHistoryVO.getSubjectName())
                 .quizNumber(testHistoryVO.getQuizNumber())
