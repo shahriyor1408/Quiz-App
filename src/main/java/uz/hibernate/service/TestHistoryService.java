@@ -8,6 +8,7 @@ import uz.hibernate.dao.TestHistoryDAO;
 import uz.hibernate.dao.subject.SubjectDAO;
 import uz.hibernate.domains.Subject;
 import uz.hibernate.domains.TestHistory;
+import uz.hibernate.enums.AuthRole;
 import uz.hibernate.utils.BaseUtil;
 import uz.hibernate.vo.AppErrorVO;
 import uz.hibernate.vo.DataVO;
@@ -17,6 +18,8 @@ import uz.hibernate.vo.testHistory.TestHistoryCreateVO;
 import uz.hibernate.vo.testHistory.TestHistoryUpdateVO;
 import uz.hibernate.vo.testHistory.TestHistoryVO;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,10 +46,13 @@ public class TestHistoryService extends AbstractDAO<TestHistoryDAO> implements G
     @Override
     public Response<DataVO<Long>> create(@NonNull TestHistoryCreateVO vo) {
         TestHistory testHistory = TestHistory.childBuilder()
+                .createdAt(Timestamp.valueOf(LocalDateTime.now()))
+                .createdBy(Session.sessionUser.getUserId())
                 .startedAt(vo.getStartedAt())
                 .finishedAt(vo.getFinishedAt())
                 .correct_quiz_count(vo.getCorrectAnswers())
                 .quiz_count(vo.getQuizNumber())
+                .subject(SubjectService.getInstance().findByName(vo.getSubjectName()).orElse(null))
                 .build();
         return new Response<>(new DataVO<>(dao.save(testHistory).getId()));
     }
@@ -77,12 +83,12 @@ public class TestHistoryService extends AbstractDAO<TestHistoryDAO> implements G
         return getAll(subject.getName());
     }
 
-    public Response<DataVO<List<TestHistoryVO>>> getAll(String subjectName) {
+    public Response<DataVO<List<TestHistoryVO>>> getAll(String id) {
         List<TestHistory> testHistories = dao.findAll();
         List<TestHistoryVO> historyVOList = new ArrayList<>();
 
         for (TestHistory testHistory : testHistories) {
-            if (testHistory.getSubject().getName().equals(subjectName)) {
+            if (Session.sessionUser.getRole().equals(AuthRole.ADMIN) && testHistory.getSubject().getId().equals(Long.parseLong(id))) {
                 historyVOList.add(
                         TestHistoryVO.childBuilder()
                                 .id(testHistory.getId())
@@ -91,6 +97,19 @@ public class TestHistoryService extends AbstractDAO<TestHistoryDAO> implements G
                                 .finishedAt(testHistory.getFinishedAt())
                                 .correctAnswers(testHistory.getCorrect_quiz_count())
                                 .subjectName(testHistory.getSubject().getName())
+                                .userId(testHistory.getCreatedBy())
+                                .build()
+                );
+            } else if (testHistory.getCreatedBy().equals(Session.sessionUser.getUserId()) && testHistory.getSubject().getId().equals(Long.parseLong(id))) {
+                historyVOList.add(
+                        TestHistoryVO.childBuilder()
+                                .id(testHistory.getId())
+                                .quizNumber(testHistory.getQuiz_count())
+                                .startedAt(testHistory.getStartedAt())
+                                .finishedAt(testHistory.getFinishedAt())
+                                .correctAnswers(testHistory.getCorrect_quiz_count())
+                                .subjectName(testHistory.getSubject().getName())
+                                .userId(testHistory.getCreatedBy())
                                 .build()
                 );
             }

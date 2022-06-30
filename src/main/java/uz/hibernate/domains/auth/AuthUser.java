@@ -36,11 +36,6 @@ public class AuthUser extends Auditable {
     @Convert(converter = Status.StatusConvertor.class)
     private Status status;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
-    @OrderColumn(name = "type")
-    private List<TestHistory> testHistoryList = new ArrayList<>();
-
     @OneToOne(mappedBy = "authUser")
     private Subject subject;
 

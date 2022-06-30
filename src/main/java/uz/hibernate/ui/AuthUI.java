@@ -47,7 +47,6 @@ public class AuthUI {
                 BaseUtils.println("Show subjects -> 3");
                 BaseUtils.println("Solve test    -> 4");
                 BaseUtils.println("Show history  -> 5");
-                BaseUtils.println("Settings      -> 6");
             } else if (Session.sessionUser.getRole().equals(AuthRole.TEACHER)) {
                 BaseUtils.println("********************* Teacher Page *******************", Colors.YELLOW);
                 BaseUtils.println("Create quiz    -> 7");
@@ -65,6 +64,7 @@ public class AuthUI {
                 BaseUtils.println("Show all users    -> 14");
                 BaseUtils.println("Give teacher role -> 15");
             }
+            BaseUtils.println("Settings      -> 6");
             BaseUtils.println("Logout    -> 0");
         }
         BaseUtils.println("Quit -> q");
@@ -347,27 +347,22 @@ public class AuthUI {
     }
 
     private void showHistory() {
-        if (Session.sessionUser.getRole().equals(AuthRole.ADMIN)) {
-            BaseUtils.readText(" ********* Subject list **********");
-            boolean b = subjectShowList();
-            if (!b) {
-                return;
-            }
-            String subjectName = BaseUtils.readText("Enter subject name : ");
-            print_response(testHistoryService.getAll(subjectName));
-        } else {
-            print_response(testHistoryService.getAll());
+        BaseUtils.println(" ********* Subject list **********", Colors.CYAN);
+        boolean b = subjectShowList();
+        if (!b) {
+            return;
         }
+        String id = BaseUtils.readText("Enter subject id : ");
+        print_response(testHistoryService.getAll(id));
     }
 
     private void solveTest() {
-        /***
-         * Team work (developing some ideas by Shohruh aka)
-         */
         BaseUtils.println("\n************************************************************************", Colors.YELLOW);
-        subjectShowList();
+        boolean b = subjectShowList();
+        if (!b) {
+            return;
+        }
         String subjectId = BaseUtils.readText("Enter subject id: ");
-
 
         if (SubjectService.getInstance().get(Long.valueOf(subjectId)).isOk()) {
             BaseUtils.println("Subject has successfully found!", Colors.PURPLE);
@@ -377,16 +372,14 @@ public class AuthUI {
             return;
         }
 
-
         BaseUtils.println(QuestionType.EASY.name() + " -> 1");
         BaseUtils.println(QuestionType.MEDIUM.name() + " -> 2");
         BaseUtils.println(QuestionType.HARD.name() + " -> 3");
         String quizType = BaseUtils.readText("Choose one option: ");
         BaseUtils.println("How many quiz do you want to solve ?");
         String quizNumber = BaseUtils.readText("Enter amount: ");
-        QuestionType questionType = null;
+        QuestionType questionType;
         switch (quizType) {
-
             case "1" -> questionType = QuestionType.EASY;
             case "2" -> questionType = QuestionType.MEDIUM;
             case "3" -> questionType = QuestionType.HARD;

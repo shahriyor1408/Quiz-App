@@ -115,7 +115,7 @@ public class SubjectDAO extends GenericDAO<Subject, Long> {
                 );
                 function.registerOutParameter(1, Types.VARCHAR);
                 function.setString(2, name);
-                function.setInt(3, Math.toIntExact(updater));
+                function.setLong(3, Math.toIntExact(updater));
                 function.execute();
                 return function;
             });

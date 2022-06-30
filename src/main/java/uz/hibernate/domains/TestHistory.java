@@ -28,7 +28,8 @@ public class TestHistory extends Auditable {
     @JoinColumn(name = "subject_id")
     private Subject subject;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinColumn(name = "user_id")
     private AuthUser authUser;
 
     @Builder(builderMethodName = "childBuilder")

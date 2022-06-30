@@ -21,10 +21,6 @@ public class Subject extends Auditable {
     @OneToMany(mappedBy = "subject", fetch = FetchType.EAGER)
     @Column(nullable = false)
     private List<Question> questionList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "subject", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @Column(nullable = false)
-    private List<TestHistory> testHistoryList = new ArrayList<>();
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
     private AuthUser authUser;

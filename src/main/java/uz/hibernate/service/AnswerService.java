@@ -54,7 +54,9 @@ public class AnswerService extends AbstractDAO<AnswerDAO> implements GenericCRUD
     public Response<DataVO<Void>> update(@NonNull AnswerUpdateVO vo) {
         Optional<Answer> optionalAnswer = dao.findAnswerById(vo.getId());
         if (optionalAnswer.isEmpty()) {
-            throw new RuntimeException("Answer not found!");
+            return new Response<>(new DataVO<>(AppErrorVO.builder()
+                    .friendlyMessage("Answer not found!")
+                    .build()));
         }
         Answer answer = Answer.childBuilder()
                 .id(vo.getId())

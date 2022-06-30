@@ -81,12 +81,11 @@ public class QuestionDAO extends GenericDAO<Question, Long> {
             CallableStatement callableStatement = session.doReturningWork(connection -> {
                 CallableStatement function = connection.prepareCall(
                         "{? = call question_delete(?)}");
-                function.registerOutParameter(1, Types.VARCHAR);
-                function.setString(2, String.valueOf(id));
+                function.registerOutParameter(1, Types.BIGINT);
+                function.setLong(2, id);
                 function.execute();
                 return function;
             });
-            callableStatement.getString(1);
         } finally {
             session.getTransaction().commit();
             session.close();

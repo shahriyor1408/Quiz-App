@@ -33,7 +33,7 @@ public class GenericDAO<T, ID> implements BaseDAO {
     public T save(T entity) {
         Session currentSession = getSession();
         currentSession.beginTransaction();
-        currentSession.persist(entity);
+        currentSession.merge(entity);
         currentSession.getTransaction().commit();
         currentSession.close();
         return entity;

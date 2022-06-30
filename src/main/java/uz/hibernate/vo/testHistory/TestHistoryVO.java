@@ -16,15 +16,17 @@ public class TestHistoryVO extends GenericVO {
     private Timestamp startedAt;
     private Timestamp finishedAt;
     private Integer correctAnswers;
+    private Long userId;
     private String subjectName;
 
     @Builder(builderMethodName = "childBuilder")
-    public TestHistoryVO(long id, Integer quizNumber, Timestamp startedAt, Timestamp finishedAt, Integer correctAnswers, String subjectName) {
+    public TestHistoryVO(long id, Integer quizNumber, Timestamp startedAt, Timestamp finishedAt, Integer correctAnswers, String subjectName, Long userId) {
         super(id);
         this.quizNumber = quizNumber;
         this.startedAt = startedAt;
         this.finishedAt = finishedAt;
         this.correctAnswers = correctAnswers;
         this.subjectName = subjectName;
+        this.userId = userId;
     }
 }

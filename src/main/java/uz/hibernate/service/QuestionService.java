@@ -125,7 +125,7 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
             dao1.delete(id);
         } catch (Exception e) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
-                    .friendlyMessage(e.getMessage())
+                    .friendlyMessage(e.getCause().getLocalizedMessage())
                     .build()), false);
         }
         return new Response<>(new DataVO<>(null, true));
@@ -145,15 +145,16 @@ public class QuestionService extends AbstractDAO<QuestionDAO> implements Generic
         }
         List<QuestionVO> questionVOList = new ArrayList<>();
 
-
         for (Question question : questions) {
-            questionVOList.add(QuestionVO.childBuilder()
-                    .id(question.getId())
-                    .text(question.getText())
-                    .type(question.getType())
-                    .createdAt(question.getCreatedAt())
-                    .subjectId(question.getSubject().getId())
-                    .build());
+            if(!question.isDeleted()){
+                questionVOList.add(QuestionVO.childBuilder()
+                        .id(question.getId())
+                        .text(question.getText())
+                        .type(question.getType())
+                        .createdAt(question.getCreatedAt())
+                        .subjectId(question.getSubject().getId())
+                        .build());
+            }
         }
 
         return new Response<>(new DataVO<>(questionVOList));

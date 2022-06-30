@@ -24,9 +24,7 @@ public class SolveTestDAO extends GenericDAO<AuthUser, Long> {
         Query<Question> query = currentSession.createQuery("select t from Question t where t.subject.id = :subjectId and t.type = :quizType and t.deleted = false", Question.class);
         query.setParameter("subjectId", subjectId);
         query.setParameter("quizType", quizType);
-        query.setMaxResults(Integer.parseInt(quizNumber));
         List<Question> resultList = query.getResultList();
-
 
         currentSession.getTransaction().commit();
         currentSession.close();

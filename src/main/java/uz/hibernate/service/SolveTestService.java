@@ -28,7 +28,7 @@ public class SolveTestService {
     private SolveTestService() {
     }
 
-    public static Response<DataVO<TestHistoryVO>> solveTest(String subjectId, QuestionType quizType, String quizNumber) {
+    public static Response<DataVO<Long>> solveTest(String subjectId, QuestionType quizType, String quizNumber) {
         List<Question> questions = SolveTestDAO.solveTest(subjectId, quizType, quizNumber);
         if (questions.isEmpty()) {
             return new Response<>(new DataVO<>(AppErrorVO.builder()
@@ -93,28 +93,18 @@ public class SolveTestService {
             System.out.println("You solved problems on time!");
         }
 
-        TestHistoryVO testHistoryVO = TestHistoryVO
-                .childBuilder()
-                .quizNumber(Integer.valueOf(quizNumber))
-                .subjectName(questions.get(0).getSubject().getName())
-                .correctAnswers(counterOfCorrectAnswer)
-                .startedAt(Timestamp.valueOf(startTime))
-                .finishedAt(Timestamp.valueOf(LocalDateTime.now()))
-                .build();
         TestHistoryCreateVO build = TestHistoryCreateVO.builder()
-                .startedAt(testHistoryVO.getStartedAt())
-                .finishedAt(testHistoryVO.getFinishedAt())
-                .subjectName(testHistoryVO.getSubjectName())
-                .quizNumber(testHistoryVO.getQuizNumber())
-                .correctAnswers(testHistoryVO.getCorrectAnswers()).build();
-
-        TestHistoryService.getInstance().create(build);
+                .startedAt(Timestamp.valueOf(startTime))
+                .finishedAt(Timestamp.valueOf(endTime))
+                .subjectName(questions.get(0).getSubject().getName())
+                .quizNumber(Integer.valueOf(quizNumber))
+                .correctAnswers(counterOfCorrectAnswer).build();
 
         BaseUtils.println("*********  Result of test   ************", Colors.GREEN);
         BaseUtils.println("Total number of chosen questions: " + quizNumber, Colors.GREEN);
         BaseUtils.println("Total number of given answers: " + answersNumber, Colors.GREEN);
         BaseUtils.println("Total number of correct found answers: " + counterOfCorrectAnswer, Colors.GREEN);
-        return new Response<>(new DataVO<TestHistoryVO>(testHistoryVO, true));
+        return TestHistoryService.getInstance().create(build);
     }
 
     public static SolveTestService getInstance() {
